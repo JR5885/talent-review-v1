@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiat Dept — Talent Review &amp; Promotion Readiness — Apr 2027</title>
+<style>
+  :root{
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --page-plane:     #f9f9f7;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1: #2a78d6; /* blue - star/fast-track */
+    --series-3: #1baf7a; /* aqua - growth */
+    --series-6: #008300; /* green - maintain */
+    --good:     #0ca30c;
+    --warning:  #fab219;
+    --serious:  #ec835a;
+    --critical: #d03b3b;
+    --card-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])){
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --page-plane:     #0d0d0d;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-3: #199e70;
+      --series-6: #008300;
+      --good:     #0ca30c;
+      --warning:  #fab219;
+      --serious:  #ec835a;
+      --critical: #e66767;
+      --card-bg: #232322;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --surface-1:      #1a1a19;
+    --page-plane:     #0d0d0d;
+    --text-primary:   #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted:     #898781;
+    --gridline:       #2c2c2a;
+    --baseline:       #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-3: #199e70;
+    --series-6: #008300;
+    --good:     #0ca30c;
+    --warning:  #fab219;
+    --serious:  #ec835a;
+    --critical: #e66767;
+    --card-bg: #232322;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--page-plane); color:var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size:14px; line-height:1.5; padding-bottom:64px;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 24px 0;}
+  header.top{margin-bottom:20px;}
+  header.top h1{font-size:22px; margin:0 0 4px; letter-spacing:-0.01em;}
+  header.top .sub{color:var(--text-secondary); font-size:13px;}
+  .badge{
+    display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px;
+    font-weight:600; background:var(--gridline); color:var(--text-secondary); margin-left:8px;
+  }
+
+  section{margin-bottom:36px;}
+  h2{font-size:16px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
+  h2 .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:50%; background:var(--text-primary); color:var(--surface-1);
+    font-size:11px; font-weight:700;
+  }
+  p.desc{color:var(--text-secondary); font-size:12.5px; margin:0 0 16px; max-width:760px;}
+
+  /* KPI tiles */
+  .kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:28px;}
+  .kpi{
+    background:var(--card-bg); border:1px solid var(--border); border-radius:10px;
+    padding:14px 16px;
+  }
+  .kpi .label{font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em;}
+  .kpi .value{font-size:26px; font-weight:700; margin-top:4px; font-variant-numeric:proportional-nums;}
+  .kpi .foot{font-size:11px; color:var(--text-secondary); margin-top:2px;}
+  .kpi.crit .value{color:var(--critical);}
+  .kpi.good .value{color:var(--good);}
+
+  /* 9-box grid */
+  .box-grid-wrap{display:grid; grid-template-columns: 1.4fr 1fr; gap:24px; align-items:start;}
+  .box-grid{
+    display:grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3,1fr);
+    gap:2px; background:var(--gridline); border:1px solid var(--border); border-radius:10px; overflow:hidden;
+    aspect-ratio: 1.35 / 1;
+  }
+  .cell{
+    background:var(--card-bg); padding:10px 12px; position:relative; display:flex; flex-direction:column;
+    justify-content:space-between; cursor:default;
+  }
+  .cell .name{font-size:11.5px; font-weight:600; color:var(--text-secondary);}
+  .cell .count{font-size:26px; font-weight:700; font-variant-numeric:proportional-nums;}
+  .cell .pct{font-size:11px; color:var(--text-muted);}
+  .cell .pool{font-size:10.5px; margin-top:6px; font-weight:600;}
+  .cell:hover{outline:2px solid var(--text-primary); outline-offset:-2px; z-index:2;}
+  .cell[data-tip]:hover::after{
+    content: attr(data-tip);
+    position:absolute; left:8px; right:8px; bottom:calc(100% + 6px); z-index:5;
+    background:var(--text-primary); color:var(--surface-1); font-size:11px; font-weight:500;
+    padding:8px 10px; border-radius:8px; line-height:1.4; box-shadow:0 4px 14px rgba(0,0,0,.25);
+    white-space:pre-line;
+  }
+  .cell.tone-good{box-shadow:inset 3px 0 0 var(--good);}
+  .cell.tone-growth{box-shadow:inset 3px 0 0 var(--series-3);}
+  .cell.tone-maintain{box-shadow:inset 3px 0 0 var(--baseline);}
+  .cell.tone-warn{box-shadow:inset 3px 0 0 var(--warning);}
+  .cell.tone-crit{box-shadow:inset 3px 0 0 var(--critical); background: color-mix(in srgb, var(--critical) 7%, var(--card-bg));}
+
+  .axis-label-y{writing-mode:vertical-rl; transform:rotate(180deg); text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; letter-spacing:.04em;}
+  .grid-with-axes{display:grid; grid-template-columns:18px 1fr; gap:6px;}
+  .grid-x-axis{display:grid; grid-template-columns:18px 1fr; gap:6px; margin-top:4px;}
+  .x-labels{display:grid; grid-template-columns:repeat(3,1fr); text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; letter-spacing:.02em;}
+
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin-top:14px; font-size:11.5px; color:var(--text-secondary);}
+  .legend .sw{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:-1px;}
+
+  /* side panel: location + level breakdown bars */
+  .side-card{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px;}
+  .side-card h3{font-size:12.5px; margin:0 0 10px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:.03em;}
+  .bar-row{display:grid; grid-template-columns:56px 1fr 28px; align-items:center; gap:8px; margin-bottom:7px; font-size:12px;}
+  .bar-track{height:10px; background:var(--gridline); border-radius:4px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--series-1); border-radius:4px 0 0 4px;}
+  .bar-row .n{text-align:right; color:var(--text-muted); font-variant-numeric:tabular-nums;}
+
+  .risk-note{
+    margin-top:16px; padding:10px 12px; border-radius:8px; font-size:12px; line-height:1.5;
+    background: color-mix(in srgb, var(--critical) 10%, var(--card-bg)); border:1px solid color-mix(in srgb, var(--critical) 35%, transparent);
+    color:var(--text-primary);
+  }
+  .risk-note b{color:var(--critical);}
+
+  /* table */
+  .table-tools{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .table-tools select, .table-tools input{
+    font-family:inherit; font-size:12px; padding:6px 10px; border-radius:7px; border:1px solid var(--border);
+    background:var(--card-bg); color:var(--text-primary);
+  }
+  table{width:100%; border-collapse:collapse; font-size:12.5px; background:var(--card-bg); border-radius:10px; overflow:hidden; border:1px solid var(--border);}
+  thead th{
+    text-align:left; padding:9px 10px; background:var(--page-plane); color:var(--text-muted);
+    font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.03em; cursor:pointer; white-space:nowrap;
+    border-bottom:1px solid var(--border);
+  }
+  thead th:hover{color:var(--text-primary);}
+  tbody td{padding:8px 10px; border-bottom:1px solid var(--gridline); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background: color-mix(in srgb, var(--text-primary) 4%, transparent);}
+  .pill{display:inline-block; padding:2px 8px; border-radius:20px; font-size:10.5px; font-weight:700; white-space:nowrap;}
+  .pill.b1{background:color-mix(in srgb, var(--series-1) 18%, transparent); color:var(--series-1);}
+  .pill.b2, .pill.b4{background:color-mix(in srgb, var(--series-3) 18%, transparent); color:var(--series-3);}
+  .pill.b3{background:color-mix(in srgb, var(--warning) 25%, transparent); color:#8a6200;}
+  .pill.b5{background:color-mix(in srgb, var(--baseline) 40%, transparent); color:var(--text-secondary);}
+  .pill.b9{background:color-mix(in srgb, var(--critical) 18%, transparent); color:var(--critical);}
+  .mono{font-variant-numeric:tabular-nums; color:var(--text-secondary);}
+  .flag{color:var(--critical); font-weight:700; cursor:help;}
+
+  /* playbook cards */
+  .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+  .pcard{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px;}
+  .pcard.crit{border-color:color-mix(in srgb, var(--critical) 45%, var(--border));}
+  .pcard .pc-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;}
+  .pcard .pc-title{font-size:14px; font-weight:700;}
+  .pcard .pc-sub{font-size:11.5px; color:var(--text-muted);}
+  .pcard h4{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted); margin:12px 0 4px;}
+  .pcard p, .pcard li{font-size:12.5px; color:var(--text-secondary); margin:0 0 4px;}
+  .pcard blockquote{
+    margin:4px 0; padding:8px 10px; background:var(--page-plane); border-left:3px solid var(--series-1);
+    border-radius:0 6px 6px 0; font-style:italic; font-size:12.5px; color:var(--text-primary);
+  }
+  .pcard.crit blockquote{border-left-color:var(--critical);}
+  .pcard ol{margin:4px 0 4px 18px; padding:0;}
+  .jrisk{
+    margin-top:10px; padding:8px 10px; border-radius:7px; font-size:11.5px;
+    background:color-mix(in srgb, var(--warning) 16%, var(--card-bg)); border:1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+  }
+  .jrisk b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px;}
+
+  footer.note{
+    margin-top:8px; padding:14px 16px; border:1px dashed var(--border); border-radius:10px;
+    font-size:12px; color:var(--text-secondary);
+  }
+
+  @media (max-width: 860px){
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .box-grid-wrap{grid-template-columns:1fr;}
+    .cards{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Fiat Department — Talent Review &amp; Promotion Readiness<span class="badge">April 2027 cycle</span></h1>
+    <div class="sub">9-Box placement · Scheme B potential (Manager 70% / HRBP 30%) · Generated 2026-09-02 · N = 15</div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="label">Headcount reviewed</div><div class="value">15</div><div class="foot">1 department · 6 locations</div></div>
+    <div class="kpi good"><div class="label">Fast-Track (Box 1)</div><div class="value">3</div><div class="foot">20% of cohort</div></div>
+    <div class="kpi"><div class="label">Growth pool (Box 2+4)</div><div class="value">4</div><div class="foot">27% of cohort</div></div>
+    <div class="kpi"><div class="label">Maintain &amp; deepen (Box 5+7)</div><div class="value">3</div><div class="foot">20% of cohort</div></div>
+    <div class="kpi crit"><div class="label">PIP pool (Box 9)</div><div class="value">4</div><div class="foot">27% of cohort · 4 jurisdictions</div></div>
+  </div>
+
+  <section id="matrix">
+    <h2><span class="num">1</span> Departmental 9-Box Distribution — Fiat</h2>
+    <p class="desc">Only one department ("Fiat" — fiat-currency clearing &amp; payments) is represented in this dataset, so the matrix below is the full departmental view; the side panel breaks the same 15 people out by location and level since the PIP exposure is jurisdiction-driven.</p>
+
+    <div class="box-grid-wrap">
+      <div>
+        <div class="grid-with-axes">
+          <div class="axis-label-y">POTENTIAL →</div>
+          <div class="box-grid">
+            <div class="cell tone-warn" data-tip="Rough Diamond — low current performance, high potential.&#10;Zackary Wong (SG). Recommend internal rotation / mentorship to unlock, not PIP.">
+              <div class="name">Box 3 · Rough Diamond</div>
+              <div><div class="count">1</div><div class="pct">7%</div></div>
+              <div class="pool">Talent mobility review</div>
+            </div>
+            <div class="cell tone-growth" data-tip="High Potential — medium performance, high potential.&#10;Siti Nurhaliza (MY), Amira Patel (IN). 6–12mo growth pool.">
+              <div class="name">Box 2 · High Potential</div>
+              <div><div class="count">2</div><div class="pct">13%</div></div>
+              <div class="pool">Succession / growth pool</div>
+            </div>
+            <div class="cell tone-good" data-tip="Star — high performance, high potential.&#10;Marcus Lin (TW), Chloe Tan (SG), Daniel Kim (TW). Fast-track priority.">
+              <div class="name">Box 1 · Star</div>
+              <div><div class="count">3</div><div class="pct">20%</div></div>
+              <div class="pool">Fast-track promotion</div>
+            </div>
+
+            <div class="cell tone-crit" data-tip="Dilemma — low performance, medium potential.&#10;No employees placed here after recompute (see audit note — FT012 reclassified to Box 9).">
+              <div class="name">Box 6 · Dilemma</div>
+              <div><div class="count">0</div><div class="pct">0%</div></div>
+              <div class="pool">Watch / coach</div>
+            </div>
+            <div class="cell tone-maintain" data-tip="Core Player — medium performance, medium potential.&#10;Jessica Chang (TW), Rajesh Kumar (IN), Kevin Chen (TW). Retain, deepen in role.">
+              <div class="name">Box 5 · Core Player</div>
+              <div><div class="count">3</div><div class="pct">20%</div></div>
+              <div class="pool">Maintain &amp; deepen</div>
+            </div>
+            <div class="cell tone-growth" data-tip="High Performer — high performance, medium potential.&#10;Derek Wu (TW), Ahmad Bin-Zayed (UAE). 6–12mo growth pool.">
+              <div class="name">Box 4 · High Performer</div>
+              <div><div class="count">2</div><div class="pct">13%</div></div>
+              <div class="pool">Succession / growth pool</div>
+            </div>
+
+            <div class="cell tone-crit" data-tip="Underperformer — low performance, low potential.&#10;Fatima Al-Mansoor (UAE, reclassified), Stephanie Ho (TW), Brian O'Connor (US), Leong Wei-Jie (MY).&#10;Immediate 2–4wk PIP, jurisdiction rules apply.">
+              <div class="name">Box 9 · Underperformer</div>
+              <div><div class="count">4</div><div class="pct">27%</div></div>
+              <div class="pool">Action / PIP pool</div>
+            </div>
+            <div class="cell tone-maintain" data-tip="Effective — medium performance, low potential.&#10;No employees placed here this cycle.">
+              <div class="name">Box 8 · Effective</div>
+              <div><div class="count">0</div><div class="pct">0%</div></div>
+              <div class="pool">Maintain</div>
+            </div>
+            <div class="cell tone-maintain" data-tip="Solid Pro — high performance, low potential.&#10;No employees placed here this cycle.">
+              <div class="name">Box 7 · Solid Pro</div>
+              <div><div class="count">0</div><div class="pct">0%</div></div>
+              <div class="pool">Maintain &amp; deepen</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-x-axis"><div></div><div class="x-labels"><div>Low</div><div>Medium</div><div>High</div></div></div>
+        <div style="text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; letter-spacing:.04em; margin-top:2px;">PERFORMANCE →</div>
+
+        <div class="legend">
+          <span><span class="sw" style="background:var(--good)"></span>Fast-track</span>
+          <span><span class="sw" style="background:var(--series-3)"></span>Growth pool</span>
+          <span><span class="sw" style="background:var(--baseline)"></span>Maintain</span>
+          <span><span class="sw" style="background:var(--warning)"></span>Mobility review</span>
+          <span><span class="sw" style="background:var(--critical)"></span>PIP / action</span>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h3>Headcount by location</h3>
+        <div class="bar-row"><div>TW</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="n">6</div></div>
+        <div class="bar-row"><div>SG</div><div class="bar-track"><div class="bar-fill" style="width:33%"></div></div><div class="n">2</div></div>
+        <div class="bar-row"><div>UAE</div><div class="bar-track"><div class="bar-fill" style="width:33%"></div></div><div class="n">2</div></div>
+        <div class="bar-row"><div>MY</div><div class="bar-track"><div class="bar-fill" style="width:33%"></div></div><div class="n">2</div></div>
+        <div class="bar-row"><div>IN</div><div class="bar-track"><div class="bar-fill" style="width:33%"></div></div><div class="n">2</div></div>
+        <div class="bar-row"><div>US</div><div class="bar-track"><div class="bar-fill" style="width:17%"></div></div><div class="n">1</div></div>
+
+        <h3 style="margin-top:16px;">Headcount by level</h3>
+        <div class="bar-row"><div>L3</div><div class="bar-track"><div class="bar-fill" style="width:100%; background:var(--series-3)"></div></div><div class="n">6</div></div>
+        <div class="bar-row"><div>L4</div><div class="bar-track"><div class="bar-fill" style="width:100%; background:var(--series-3)"></div></div><div class="n">6</div></div>
+        <div class="bar-row"><div>M1</div><div class="bar-track"><div class="bar-fill" style="width:33%; background:var(--series-3)"></div></div><div class="n">2</div></div>
+        <div class="bar-row"><div>M2</div><div class="bar-track"><div class="bar-fill" style="width:17%; background:var(--series-3)"></div></div><div class="n">1</div></div>
+
+        <div class="risk-note">
+          <b>Structural risk:</b> the cohort is bimodal — 60% sit in Fast-Track/Growth pools, 27% are in the PIP pool, and the middle bands (Box 6/7/8) are empty. That leaves almost no "developing toward core" tier, and the Box 9 group spans <b>4 separate labor-law jurisdictions</b> (TW, UAE, US, MY) simultaneously, which multiplies HR/legal review load this cycle.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="review-table">
+    <h2><span class="num">2</span> Talent Review Table</h2>
+    <p class="desc">Perf = average of Q1–Q4 (grade scale S=5, A=4, B=3, B−=2, C=1). Pot = Manager×0.7 + HRBP×0.3 (grade scale High=5, Med=3, Low=1.5). Click a column header to sort.</p>
+
+    <div class="table-tools">
+      <select id="boxFilter">
+        <option value="">All boxes</option>
+        <option value="Box 1">Box 1 — Star</option>
+        <option value="Box 2">Box 2 — High Potential</option>
+        <option value="Box 3">Box 3 — Rough Diamond</option>
+        <option value="Box 4">Box 4 — High Performer</option>
+        <option value="Box 5">Box 5 — Core Player</option>
+        <option value="Box 9">Box 9 — Underperformer</option>
+      </select>
+      <input id="searchBox" type="text" placeholder="Search name / ID…">
+    </div>
+
+    <table id="talentTable">
+      <thead>
+        <tr>
+          <th data-k="id">ID</th><th data-k="name">Name</th><th data-k="level">Level</th><th data-k="loc">Location</th>
+          <th data-k="perf">Perf</th><th data-k="pot">Pot</th><th data-k="box">Box</th><th data-k="status">Apr 2027 status</th><th data-k="target">Target level</th>
+        </tr>
+      </thead>
+      <tbody><!-- filled by JS --></tbody>
+    </table>
+  </section>
+
+  <section id="retention">
+    <h2><span class="num">3</span> High-Potential Retention &amp; Care Playbook — Box 1, 2, 4</h2>
+    <p class="desc">1-on-1 openers and retention levers for the 7 people in Fast-Track and Growth pools, plus a note on the one Box 3 "rough diamond" who sits outside the formal retention boxes but is a flight risk worth a deliberate conversation.</p>
+    <div class="cards" id="retentionCards"></div>
+  </section>
+
+  <section id="pip">
+    <h2><span class="num">4</span> Underperformer PIP Plan — Box 9</h2>
+    <p class="desc">2–4 week SMART milestones, a manager conversation opener, and the jurisdiction-specific compliance rule that governs each case. All four sit in different countries — treat each as its own legal process, not a template copy.</p>
+    <div class="cards" id="pipCards"></div>
+    <footer class="note">
+      <b>Audit note:</b> the source workbook tagged FT012 (Fatima Al-Mansoor) as <b>Box 6 (Dilemma)</b>. Recomputing her potential score from the underlying Manager/HRBP ratings gives Pot = (Med 3 × 0.7) + (Low 1.5 × 0.3) = <b>2.55</b>, which falls under the Low-potential threshold (&lt;2.8) in the Scheme B rules — so she is placed in <b>Box 9</b> on this dashboard instead. Under the project's own escalation rule ("Box 9 and persistent Box 6" both route to the Action/PIP pool), the recommended action doesn't change; only the label and the framing of the conversation do. Flag this for HRBP calibration before the case is finalized.
+    </footer>
+  </section>
+
+</div>
+
+<script>
+const employees = [
+  {id:"FT001", name:"Marcus Lin", level:"M2", loc:"TW", perf:4.75, pot:5.0, box:"Box 1", boxLabel:"Box 1 (Star)", status:"Fast-Track — priority promotion", target:"M3 (senior mgmt track)"},
+  {id:"FT002", name:"Chloe Tan", level:"L4", loc:"SG", perf:4.5, pot:5.0, box:"Box 1", boxLabel:"Box 1 (Star)", status:"Fast-Track — people-leadership route", target:"M1"},
+  {id:"FT003", name:"Daniel Kim", level:"L4", loc:"TW", perf:4.5, pot:5.0, box:"Box 1", boxLabel:"Box 1 (Star)", status:"Fast-Track — technical specialist route", target:"L5"},
+  {id:"FT004", name:"Derek Wu", level:"M1", loc:"TW", perf:4.25, pot:3.0, box:"Box 4", boxLabel:"Box 4 (High Performer)", status:"Succession pool, 6–12mo", target:"M2 (readiness build)"},
+  {id:"FT005", name:"Ahmad Bin-Zayed", level:"L3", loc:"UAE", perf:4.25, pot:3.0, box:"Box 4", boxLabel:"Box 4 (High Performer)", status:"Succession pool, 6–12mo", target:"L4"},
+  {id:"FT006", name:"Siti Nurhaliza", level:"L4", loc:"MY", perf:3.5, pot:4.4, box:"Box 2", boxLabel:"Box 2 (High Potential)", status:"Growth pool, 6–12mo", target:"L5 / M1 (dual-track eval)"},
+  {id:"FT007", name:"Amira Patel", level:"L3", loc:"IN", perf:3.5, pot:4.4, box:"Box 2", boxLabel:"Box 2 (High Potential)", status:"Growth pool, 6–12mo", target:"L4"},
+  {id:"FT008", name:"Zackary Wong", level:"L3", loc:"SG", perf:2.5, pot:4.4, box:"Box 3", boxLabel:"Box 3 (Rough Diamond)", status:"Talent mobility review", target:"Lateral move (TBD)"},
+  {id:"FT009", name:"Jessica Chang", level:"L3", loc:"TW", perf:3.0, pot:3.0, box:"Box 5", boxLabel:"Box 5 (Core Player)", status:"Maintain &amp; deepen", target:"L3 (current)"},
+  {id:"FT010", name:"Rajesh Kumar", level:"L4", loc:"IN", perf:3.25, pot:3.0, box:"Box 5", boxLabel:"Box 5 (Core Player)", status:"Maintain &amp; deepen", target:"L4 (current)"},
+  {id:"FT011", name:"Kevin Chen", level:"L3", loc:"TW", perf:3.0, pot:3.0, box:"Box 5", boxLabel:"Box 5 (Core Player)", status:"Maintain &amp; deepen", target:"L3 (current)"},
+  {id:"FT012", name:"Fatima Al-Mansoor", level:"L4", loc:"UAE", perf:2.5, pot:2.55, box:"Box 9", boxLabel:"Box 9 (Underperformer, reclassified)", status:"PIP — 30-day statutory process (UAE)", target:"Pending PIP outcome", flagged:true},
+  {id:"FT013", name:"Stephanie Ho", level:"M1", loc:"TW", perf:1.75, pot:1.5, box:"Box 9", boxLabel:"Box 9 (Underperformer)", status:"PIP — 4wk, Last Resort Doctrine (TW)", target:"Pending PIP outcome"},
+  {id:"FT014", name:"Brian O'Connor", level:"L4", loc:"US", perf:1.5, pot:1.5, box:"Box 9", boxLabel:"Box 9 (Underperformer)", status:"PIP — written, at-will (US)", target:"Pending PIP outcome"},
+  {id:"FT015", name:"Leong Wei-Jie", level:"L3", loc:"MY", perf:1.5, pot:1.5, box:"Box 9", boxLabel:"Box 9 (Underperformer)", status:"PIP — 2 warning letters (MY)", target:"Pending PIP outcome"},
+];
+
+function pillClass(box){
+  return {"Box 1":"b1","Box 2":"b2","Box 3":"b3","Box 4":"b4","Box 5":"b5","Box 9":"b9"}[box] || "b5";
+}
+
+function renderTable(rows){
+  const tbody = document.querySelector("#talentTable tbody");
+  tbody.innerHTML = rows.map(e => `
+    <tr>
+      <td class="mono">${e.id}</td>
+      <td>${e.name}${e.flagged ? ' <span class="flag" title="Reclassified from Box 6 to Box 9 — see audit note below.">&#9888;</span>' : ''}</td>
+      <td>${e.level}</td>
+      <td>${e.loc}</td>
+      <td class="mono">${e.perf.toFixed(2)}</td>
+      <td class="mono">${e.pot.toFixed(2)}</td>
+      <td><span class="pill ${pillClass(e.box)}">${e.boxLabel}</span></td>
+      <td>${e.status}</td>
+      <td>${e.target}</td>
+    </tr>
+  `).join("");
+}
+
+let sortKey = null, sortDir = 1;
+function applyFilters(){
+  const boxVal = document.getElementById("boxFilter").value;
+  const q = document.getElementById("searchBox").value.trim().toLowerCase();
+  let rows = employees.filter(e => (!boxVal || e.box === boxVal) && (!q || e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)));
+  if(sortKey){
+    const map = {id:"id",name:"name",level:"level",loc:"loc",perf:"perf",pot:"pot",box:"box",status:"status",target:"target"};
+    rows = rows.slice().sort((a,b)=>{
+      const av=a[map[sortKey]], bv=b[map[sortKey]];
+      if(typeof av === "number") return (av-bv)*sortDir;
+      return String(av).localeCompare(String(bv))*sortDir;
+    });
+  }
+  renderTable(rows);
+}
+document.getElementById("boxFilter").addEventListener("change", applyFilters);
+document.getElementById("searchBox").addEventListener("input", applyFilters);
+document.querySelectorAll("#talentTable thead th").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const k = th.dataset.k;
+    if(sortKey === k){ sortDir *= -1; } else { sortKey = k; sortDir = 1; }
+    applyFilters();
+  });
+});
+applyFilters();
+
+// Retention playbook cards
+const retention = [
+  {id:"FT001", name:"Marcus Lin", tag:"Box 1 · Star", loc:"TW · M2",
+   opener:"“The 99.99% automation result on the clearing line is the kind of cross-department impact we build succession plans around — I want to talk about what a Director-track runway looks like for you.”",
+   incentives:["Nominate for M3 / senior-management sponsorship this cycle","Visibility slot with senior leadership on the automation win","Retention compensation review given fast-track status"]},
+  {id:"FT002", name:"Chloe Tan", tag:"Box 1 · Star", loc:"SG · L4 → M1",
+   opener:"“You've effectively been running SEA payment architecture like a manager already — let's make that official. I'd like to put you forward for M1.”",
+   incentives:["Formal M1 management-track offer with leadership onboarding support","Sponsor a leadership-skills program ahead of the transition","SG market is competitive for this skillset — flag to comp for a retention check"]},
+  {id:"FT003", name:"Daniel Kim", tag:"Box 1 · Star", loc:"TW · L4 → L5",
+   opener:"“Your multi-currency risk-control design is now core infrastructure — I want to recognize that with an L5 specialist track rather than push you toward people management.”",
+   incentives:["L5 technical specialist / architect-track promotion","Sponsor conference or internal publication of the algorithm work","Protect deep-work time — pair with a junior engineer for knowledge transfer, not management load"]},
+  {id:"FT004", name:"Derek Wu", tag:"Box 4 · High Performer", loc:"TW · M1",
+   opener:"“Delivery has been consistently strong — I want to widen your scope over the next two quarters to see how you handle broader management responsibility.”",
+   incentives:["Stretch assignment leading a cross-team initiative","6–12mo runway toward M2 with explicit check-in cadence","Pair with an M2 mentor for shadow exposure"]},
+  {id:"FT005", name:"Ahmad Bin-Zayed", tag:"Box 4 · High Performer", loc:"UAE · L3",
+   opener:"“Zero-failure execution on high-value MENA transactions says you're ready for more — I'd like to test that with a cross-border assignment.”",
+   incentives:["Cross-border project assignment to test lateral potential","L4 promotion runway conditioned on that assignment","Recognition for regional execution quality in team forum"]},
+  {id:"FT006", name:"Siti Nurhaliza", tag:"Box 2 · High Potential", loc:"MY · L4",
+   opener:"“Your read on market and regulatory signals stands out — let's put that to work on something bigger over the next 6–12 months.”",
+   incentives:["Stretch project ownership spanning markets","Dual-track exploration: L5 technical vs M1 people-management","Quarterly check-in to track potential-to-performance conversion"]},
+  {id:"FT007", name:"Amira Patel", tag:"Box 2 · High Potential", loc:"IN · L3",
+   opener:"“The rigor you bring to compliance review, plus how well you coordinate across cultures, is exactly what our next complex project needs.”",
+   incentives:["Assignment to a complex cross-border compliance project","L4 promotion runway in 6–12 months","Cross-cultural coordination recognized explicitly in review"]},
+];
+document.getElementById("retentionCards").innerHTML = retention.map(p => `
+  <div class="pcard">
+    <div class="pc-head">
+      <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.tag} · ${p.loc}</div></div>
+    </div>
+    <h4>1-on-1 opener</h4>
+    <blockquote>${p.opener}</blockquote>
+    <h4>Retention levers</h4>
+    <ul>${p.incentives.map(i=>`<li>${i}</li>`).join("")}</ul>
+  </div>
+`).join("") + `
+  <div class="pcard" style="grid-column:1 / -1; background:color-mix(in srgb, var(--warning) 10%, var(--card-bg));">
+    <div class="pc-head"><div><div class="pc-title">Zackary Wong — Box 3, Rough Diamond (SG · L3)</div><div class="pc-sub">Outside the formal retention boxes, but a flight risk worth naming</div></div></div>
+    <p>High potential (Pot 4.4) with genuinely low current-role performance (Perf 2.5). Not a PIP case — the notes point to a mismatch between his abstract/analytical strengths and the current operational role, not lack of effort.</p>
+    <blockquote>“I don't think this role is using what you're actually good at — let's talk honestly about whether a different team would let that potential show up in your results.”</blockquote>
+    <ul><li>Skip-level mentorship pairing to unlock engagement</li><li>Evaluate internal rotation to a more analytical/strategic role before the next review cycle</li><li>Re-assess in 90 days — if performance stays low post-rotation, revisit box placement</li></ul>
+  </div>
+`;
+
+// PIP cards
+const pip = [
+  {id:"FT012", name:"Fatima Al-Mansoor", tag:"L4 · UAE", box:"Box 9 (reclassified)",
+   context:"Resisting new compliance-framework changes; performance has slipped as a result.",
+   milestones:["Wk1–2: Complete mandatory refresher on the new compliance framework; 100% on-time submission of adjusted checklist across 2 cycles","Wk3–4: Independently lead one regulatory-change rollout with zero escalations; weekly documented check-ins"],
+   metric:"On-time compliance submission rate ≥95%, zero missed deadlines",
+   opener:"“I want to walk through the specific compliance deadlines that were missed this quarter, and agree on a concrete plan to get you back on track over the next few weeks.”",
+   jTitle:"UAE — Federal Decree-Law No. 33 of 2021",
+   jText:"Minimum 30-day statutory notice applies before any termination step. Document failure against objective targets throughout the PIP window to avoid an arbitrary-dismissal claim — the 2–4wk evaluation feeds into, but does not replace, the 30-day notice."},
+  {id:"FT013", name:"Stephanie Ho", tag:"M1 · TW", box:"Box 9",
+   context:"Repeated cross-departmental reconciliation control failures.",
+   milestones:["Wk1–2: Root-cause audit of recent reconciliation failures; corrective SOP signed off by Finance/Ops leads","Wk3–4: Zero reconciliation escalations; bi-weekly documented check-ins per Last Resort Doctrine; parallel reassignment-feasibility assessment"],
+   metric:"Zero unresolved reconciliation discrepancies outstanding &gt;48 hours",
+   opener:"“Let's look together at the reconciliation breakdowns from the last two quarters and build a specific, time-boxed plan — I also want to explore whether a different role fits better.”",
+   jTitle:"TW — Labor Standards Act, Article 11-5 (Last Resort Doctrine)",
+   jText:"Mandatory 2–4 week objective PIP with bi-weekly check-ins. Termination must be demonstrably a last resort — a reassignment-feasibility assessment is required before any separation step."},
+  {id:"FT014", name:"Brian O'Connor", tag:"L4 · US", box:"Box 9",
+   context:"Four consecutive quarters below target; declining to engage in coaching conversations.",
+   milestones:["Wk1–2: Mandatory weekly 1:1s with documented binary KPI targets (e.g., ledger accuracy ≥99.5%)","Wk3–4: Meet all binary KPI thresholds for 2 consecutive weeks; all feedback documented in writing"],
+   metric:"100% attendance at check-ins and all binary KPI thresholds met",
+   opener:"“I need you at these weekly check-ins going forward — here are the specific, measurable targets we'll track, in writing, starting this week.”",
+   jTitle:"US — At-Will Doctrine",
+   jText:"A written PIP with binary, objective metrics is the primary documentation defending against Title VII / ADEA / retaliation claims if separation follows. Keep all communication in writing."},
+  {id:"FT015", name:"Leong Wei-Jie", tag:"L3 · MY", box:"Box 9",
+   context:"Reconciliation anomalies in the local payment channel plus a disengaged attitude in reviews.",
+   milestones:["Wk1–2: Issue first formal written warning letter; assign a senior-peer mentor; start a daily reconciliation-accuracy log","Wk3–4: Issue second formal warning if targets unmet; reconciliation accuracy ≥98%; mentorship log maintained"],
+   metric:"Reconciliation error rate reduced to &lt;2%",
+   opener:"“I want to be direct: here's the documented pattern of reconciliation issues, and here is the formal support and warning process we're required to follow together.”",
+   jTitle:"MY — Industrial Relations Act 1967, S20",
+   jText:"A 2–4 week window alone is high-risk here. Issue at least two formal written warning letters detailing consequences, and maintain a mentorship log as evidence of genuine support."},
+];
+document.getElementById("pipCards").innerHTML = pip.map(p => `
+  <div class="pcard crit">
+    <div class="pc-head">
+      <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.tag} · ${p.box}</div></div>
+    </div>
+    <p>${p.context}</p>
+    <h4>SMART milestones (2–4 weeks)</h4>
+    <ol>${p.milestones.map(m=>`<li>${m}</li>`).join("")}</ol>
+    <h4>Success metric</h4>
+    <p class="mono">${p.metric}</p>
+    <h4>Manager conversation opener</h4>
+    <blockquote>${p.opener}</blockquote>
+    <div class="jrisk"><b>${p.jTitle}</b>${p.jText}</div>
+  </div>
+`).join("");
+</script>
+</body>
+</html>
