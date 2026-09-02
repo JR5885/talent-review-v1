@@ -10,11 +10,11 @@
     --surface-1: #fcfcfb; --page-plane: #0d0d0d; --text-primary: #ffffff; --text-secondary: #c3c2b7;
     --text-muted: #898781; --gridline: #2c2c2a; --baseline: #383835; --border: rgba(255,255,255,0.10);
     --series-1: #3987e5; --series-3: #199e70; --series-6: #008300; --good: #0ca30c;
-    --warning: #fab219; --serious: #ec835a; --critical: #e66767; --card-bg: #232322;
+    --warning: #fab219; --serious: #ec835a; --critical: #e66767; --card-bg: #1c1c1b;
   }
   *{box-sizing:border-box;}
   body{margin:0; background:var(--page-plane); color:var(--text-primary); font-family: system-ui,-apple-system,"Segoe UI",sans-serif; font-size:14px; line-height:1.5; padding:28px 24px 64px;}
-  .wrap{max-width:1180px; margin:0 auto;}
+  .wrap{max-width:1200px; margin:0 auto;}
   header.top{margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start;}
   header.top h1{font-size:22px; margin:0 0 4px; letter-spacing:-0.01em;}
   header.top .sub{color:var(--text-secondary); font-size:13px;}
@@ -30,7 +30,7 @@
   section{margin-bottom:36px;}
   h2{font-size:16px; margin:0 0 4px; display:flex; align-items:center; gap:8px;}
   h2 .num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:var(--text-primary); color:var(--surface-1); font-size:11px; font-weight:700;}
-  p.desc{color:var(--text-secondary); font-size:12.5px; margin:0 0 16px; max-width:760px;}
+  p.desc{color:var(--text-secondary); font-size:12.5px; margin:0 0 16px; max-width:850px;}
 
   .kpi-row{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:28px;}
   .kpi{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px;}
@@ -87,20 +87,33 @@
   .mono{font-variant-numeric:tabular-nums; color:var(--text-secondary);}
   .flag{color:var(--critical); font-weight:700; cursor:help;}
 
-  .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
-  .pcard{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px;}
+  /* 深度升級的 Playbook 卡片樣式 */
+  .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .pcard{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:18px; display:flex; flex-direction:column; justify-content:space-between;}
   .pcard.crit{border-color:color-mix(in srgb, var(--critical) 45%, var(--border));}
   .pcard .pc-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;}
-  .pcard .pc-title{font-size:14px; font-weight:700;}
+  .pcard .pc-title{font-size:15px; font-weight:700;}
   .pcard .pc-sub{font-size:11.5px; color:var(--text-muted);}
-  .pcard h4{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted); margin:12px 0 4px;}
-  .pcard p, .pcard li{font-size:12.5px; color:var(--text-secondary); margin:0 0 4px;}
-  .pcard blockquote{margin:4px 0; padding:8px 10px; background:var(--page-plane); border-left:3px solid var(--series-1); border-radius:0 6px 6px 0; font-style:italic; font-size:12.5px; color:var(--text-primary);}
-  .pcard.crit blockquote{border-left-color:var(--critical);}
-  .pcard ol, .pcard ul{margin:4px 0 4px 18px; padding:0;}
+  .pcard .section-tag{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:700; margin:10px 0 4px;}
+  
+  .action-grid{display:grid; grid-template-columns:1fr; gap:8px; background:color-mix(in srgb, var(--page-plane) 60%, var(--card-bg)); padding:10px 12px; border-radius:8px; border:1px solid var(--border); margin:8px 0;}
+  .action-item{font-size:12px; line-height:1.45;}
+  .action-item b{color:var(--text-primary); display:inline-block; width:110px;}
+
+  .dialogue-box{margin:6px 0; padding:8px 12px; border-radius:6px; font-size:12px; line-height:1.45; font-style:italic;}
+  .dialogue-mgr{background:var(--page-plane); border-left:3px solid var(--series-1); color:var(--text-primary);}
+  .dialogue-hr{background:var(--page-plane); border-left:3px solid var(--series-3); color:var(--text-primary); margin-top:4px;}
+  .pcard.crit .dialogue-mgr{border-left-color:var(--critical);}
+  .pcard.crit .dialogue-hr{border-left-color:var(--warning);}
+
   .jrisk{margin-top:10px; padding:8px 10px; border-radius:7px; font-size:11.5px; background:color-mix(in srgb, var(--warning) 16%, var(--card-bg)); border:1px solid color-mix(in srgb, var(--warning) 45%, transparent);}
-  .jrisk.uncovered{background:color-mix(in srgb, var(--baseline) 25%, var(--card-bg)); border-color:var(--border);}
   .jrisk b{display:block; font-size:11px; text-transform:uppercase; letter-spacing:.03em; margin-bottom:2px;}
+
+  @media (max-width: 960px){
+    .cards{grid-template-columns:1fr;}
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    .box-grid-wrap{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
@@ -136,7 +149,6 @@ const complianceGuidelines = {
   LATAM: { title: "LATAM — Regional Framework", text: "Confirm the employee's specific country of employment and applicable statutory indemnities with local counsel." }
 };
 
-// 完整 RFC 4180 CSV 解析器，支援引號內逗號與多行文本
 function parseCSV(text) {
   const p = [];
   let row = [''], i = 0, inQuote = false;
@@ -329,33 +341,56 @@ function renderTable(team, tbodyId){
   return draw;
 }
 
+// 深度三方行動 (Manager / HRBP / Employee) 與 雙人話術產生器
 function renderRetentionCards(team){
   const ret = team.employees.filter(e => e.box === 'Box 1' || e.box === 'Box 2' || e.box === 'Box 4');
   const b3 = team.employees.filter(e => e.box === 'Box 3');
 
   let html = ret.map(p => `
     <div class="pcard">
-      <div class="pc-head"><div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.boxLabel} · ${p.loc} · ${p.level}</div></div></div>
-      <h4>Context &amp; Contribution</h4>
-      <p>${p.notes || "Consistently high delivery and organizational impact."}</p>
-      <h4>1-on-1 opener</h4>
-      <blockquote>“The impact you've delivered over the past four quarters stands out — we are proactively planning your 2027 runway, and I want to align on the strategic projects and support you need.”</blockquote>
-      <h4>Retention levers</h4>
-      <ul>
-        <li>Fast-track promotion readiness &amp; executive mentorship</li>
-        <li>Strategic project ownership &amp; retention compensation review</li>
-      </ul>
+      <div>
+        <div class="pc-head">
+          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.boxLabel} · ${p.loc} · ${p.level} ➔ Target: ${p.target}</div></div>
+        </div>
+        
+        <div class="section-tag">Context &amp; Contribution</div>
+        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Consistently high delivery and strategic organizational impact."}</p>
+        
+        <div class="section-tag">Role-Based Action Plan (責任分工)</div>
+        <div class="action-grid">
+          <div class="action-item"><b>Direct Manager:</b> 委任跨團隊策略專案主導權，建立雙週 1:1 職涯護航機制，提前規劃晉升 Runway。</div>
+          <div class="action-item"><b>HRBP:</b> 啟動外部薪酬水位審查（Comp Benchmark），設計特別留任激勵（Retention Equity/Grant），確立晉升審批通道。</div>
+          <div class="action-item"><b>員工本人 (Self):</b> 制定個人發展計畫（IDP），主動承接架構設計或團隊帶教任務，擴大橫向組織影響力。</div>
+        </div>
+
+        <div class="section-tag">1-on-1 Dialogue Playbook (主管與 HRBP 話術)</div>
+        <div class="dialogue-box dialogue-mgr">
+          <b>Direct Manager 話術：</b> “你在過去四季的交付是組織的標竿。我們已正式將你列入 2027 年 4 月晉升計畫，接下來我會全力為你爭取資源，你希望在哪些策略專案中發揮更大主導權？”
+        </div>
+        <div class="dialogue-box dialogue-hr">
+          <b>HRBP 激勵留任閉環：</b> “組織高度認可你的戰略貢獻，我們正與管理層制定具競爭力的中長期留任配套與晉升通道，我們希望確保你在這裡擁有最寬廣的成長舞台。”
+        </div>
+      </div>
     </div>
   `).join('');
 
   if(b3.length > 0){
     html += `
       <div class="pcard" style="grid-column:1 / -1; background:color-mix(in srgb, var(--warning) 10%, var(--card-bg));">
-        <div class="pc-head"><div><div class="pc-title">${b3.length} Box 3 · Rough Diamonds — mobility review, not PIP</div><div class="pc-sub">High potential, low current performance — role fit mismatch</div></div></div>
-        <ul>
-          ${b3.map(p=>`<li><b>${p.name}</b> (${p.level}, ${p.loc}) — ${p.notes || 'Strong potential requires role alignment.'}</li>`).join('')}
+        <div class="pc-head">
+          <div><div class="pc-title">${b3.length} Box 3 · 璞玉待磨 (Rough Diamonds) — 橫向輪調激發潛力，避免誤入 PIP</div><div class="pc-sub">具備高學習敏捷度與高潛力，但目前崗位績效未達預期（人崗錯配訊號）</div></div>
+        </div>
+        <ul style="margin:6px 0 10px 18px; font-size:12.5px;">
+          ${b3.map(p=>`<li><b>${p.name}</b> (${p.level}, ${p.loc}) — ${p.notes || '高潛質待發掘'}</li>`).join('')}
         </ul>
-        <blockquote>“We see strong underlying agility in your work, but current results aren't matching that potential — let's explore whether an internal rotation to a different project or track lets your strengths show up.”</blockquote>
+        <div class="action-grid">
+          <div class="action-item"><b>Direct Manager:</b> 停止以常規低績效施壓，檢視當前工作範疇是否限制其強項，與主管討論轉調意向。</div>
+          <div class="action-item"><b>HRBP:</b> 主導跨部門內部輪調機制（Internal Mobility），媒合至重策略分析或純攻防技術之崗位，設立 90 天轉崗檢視期。</div>
+          <div class="action-item"><b>員工本人 (Self):</b> 具體列出過往最具成就感與高能量之任務型態，開放配合跨領域專案支援。</div>
+        </div>
+        <div class="dialogue-box dialogue-mgr">
+          <b>Manager 話術：</b> “我們清楚看見你的學習敏捷度與潛質，但目前崗位的日常節奏並未讓你發揮最大長處。這不是能力問題，我們想認真跟你探討內部輪調的可能性。”
+        </div>
       </div>
     `;
   }
@@ -368,16 +403,31 @@ function renderPIPCards(team){
     const guide = complianceGuidelines[p.loc] || { title: `${p.loc} — Regional Labor Code`, text: "Ensure written KPIs, regular documented check-ins, and reasonable opportunity to improve per local regulations." };
     return `
     <div class="pcard crit">
-      <div class="pc-head"><div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.level} · ${p.loc} · ${p.boxLabel}</div></div></div>
-      <p>${p.notes || "Performance consistently below standard."}</p>
-      <h4>SMART milestones (2–4 weeks)</h4>
-      <ol>
-        <li>Wk1–2: Mandatory 1:1 check-in; root-cause audit and sign-off on objective, binary KPI thresholds.</li>
-        <li>Wk3–4: 100% on-time delivery on assigned deliverables; formal documented review against exit/continuation criteria.</li>
-      </ol>
-      <h4>Manager conversation opener</h4>
-      <blockquote>“Let's walk directly through the performance data from the last four quarters. We are initiating a time-boxed 2–4 week improvement plan with explicit deliverables starting today.”</blockquote>
-      <div class="jrisk"><b>${guide.title}</b>${guide.text}</div>
+      <div>
+        <div class="pc-head">
+          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.level} · ${p.loc} · <span style="color:var(--critical); font-weight:700;">${p.boxLabel}</span></div></div>
+        </div>
+        
+        <div class="section-tag">Deficiency &amp; Risk Context</div>
+        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Performance consistently below standard with severe process breakdown."}</p>
+        
+        <div class="section-tag">Role-Based Action Plan (淘汰與合規分工)</div>
+        <div class="action-grid">
+          <div class="action-item"><b>Direct Manager:</b> 設定 2-4 週內具體二元化（Binary）檢核標準（如交付率、零錯誤率），實施每週 1:1 書面進度日誌。</div>
+          <div class="action-item"><b>HRBP:</b> 建立合規檔案庫（審計輔導紀錄與轉崗評估），把控解僱合法性與法定預告期，必要時主動啟動協議離職談判以節省成本。</div>
+          <div class="action-item"><b>員工本人 (Self):</b> 簽署改善計畫確認書，每日更新產出日誌並於每週五提交覆核，逾期視為未達標。</div>
+        </div>
+
+        <div class="section-tag">Manager &amp; HRBP Hard-Talk Scripts (嚴肅談判話術)</div>
+        <div class="dialogue-box dialogue-mgr">
+          <b>Direct Manager 開場白：</b> “我們檢視了過去四季的量化數據，交付成果與組織標準有顯著落差。今天正式啟動為期 2-4 週的績效改善計畫（PIP）。這份文件列明了唯一的合格標準，我們每週會書面覆核。”
+        </div>
+        <div class="dialogue-box dialogue-hr">
+          <b>HRBP 合規施壓與協議引導：</b> “公司依法提供合理的輔導與改善機會，但若指標未能如期達成，我們將依當地法規進入法定終止或轉崗評估。如果你評估目前的節奏不適合，我們也可在合規前提下探討合意協議方案。”
+        </div>
+
+        <div class="jrisk"><b>${guide.title}</b>${guide.text}</div>
+      </div>
     </div>
   `;
   }).join('') || '<div style="color:var(--text-muted); font-size:12px; padding:12px;">No employees currently in PIP pool.</div>';
@@ -421,12 +471,12 @@ function buildPane(team, idx){
     </section>
     <section>
       <h2><span class="num">3</span> High-Potential Retention &amp; Care Playbook — Box 1, 2, 4</h2>
-      <p class="desc">1-on-1 openers and retention levers for talent in Fast-Track and Growth pools, plus Box 3 mobility review.</p>
+      <p class="desc">主管/HRBP/員工三方具體行動對照表，結合激勵留才對話話術與晉升防禦機制。</p>
       <div class="cards">${renderRetentionCards(team)}</div>
     </section>
     <section>
       <h2><span class="num">4</span> Underperformer PIP Plan — Box 9 / 6</h2>
-      <p class="desc">2–4 week SMART milestones, manager conversation openers, and jurisdiction-specific compliance rules.</p>
+      <p class="desc">2–4 週二元化量化指標、嚴肅談判話術與多國勞工法規最後手段性防禦機制，及早汰劣節省沉沒成本。</p>
       <div class="cards">${renderPIPCards(team)}</div>
     </section>
   </div>`;
@@ -465,7 +515,6 @@ function wireTable(team){
   apply();
 }
 
-// 核心啟動：直接抓取 GID 目錄表 (50466109)，動態長出所有 Tab
 async function boot(){
   const tabbar = document.getElementById('tabbar');
   const panes = document.getElementById('panes');
@@ -511,7 +560,6 @@ async function boot(){
       loadedTeams.push({ ...cfg, employees });
     } catch(err) {
       console.error(`載入 ${cfg.label} 失敗:`, err);
-      // 畫面提示未發布
       loadedTeams.push({ ...cfg, employees: [] });
     }
   }
