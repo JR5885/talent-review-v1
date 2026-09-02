@@ -20,7 +20,6 @@
   header.top .sub{color:var(--text-secondary); font-size:13px;}
   .badge{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; background:var(--gridline); color:var(--text-secondary); margin-left:8px;}
 
-  /* 動態生成的部門 Tab 列 */
   .tabbar{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:24px; overflow-x:auto;}
   .tabbtn{appearance:none; border:none; background:none; font-family:inherit; font-size:13px; font-weight:600; color:var(--text-muted); padding:10px 16px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap;}
   .tabbtn.active{color:var(--text-primary); border-bottom-color:var(--series-1);}
@@ -114,16 +113,12 @@
     <div id="syncStatus" style="font-size:12px; color:var(--text-muted);">連線中...</div>
   </header>
 
-  <!-- 自動生成的部門 Tab 列 -->
   <div class="tabbar" id="tabbar"></div>
   <div id="panes"></div>
 </div>
 
 <script>
-// 試算表發布基礎 URL
 const BASE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGPWPZC10sDW7DNW_X21iuKxKNwGhmERDWdBI8RdXPBjunnRelJtf9I2PYPzSBE80EvHrgyLgyWs8C/pub?output=csv&single=true&gid=";
-
-// ！！！依據截圖，精確指定你的 GID 目錄分頁 ID！！！
 const INDEX_SHEET_GID = "50466109";
 
 const perfMap = { "S": 5.0, "A": 4.0, "B": 3.0, "B-": 2.0, "C": 1.0 };
@@ -141,14 +136,34 @@ const complianceGuidelines = {
   LATAM: { title: "LATAM — Regional Framework", text: "Confirm the employee's specific country of employment and applicable statutory indemnities with local counsel." }
 };
 
+// 完整 RFC 4180 CSV 解析器，支援引號內逗號與多行文本
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^[\uFEFF\s]+|[\s]+$/g, ''));
-  return lines.slice(1).map(line => {
-    const values = line.split(',').map(v => v.trim());
-    let obj = {};
-    headers.forEach((h, i) => obj[h] = values[i] || '');
-    return obj;
+  const p = [];
+  let row = [''], i = 0, inQuote = false;
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  for (let ch of text) {
+    if (ch === '"') {
+      inQuote = !inQuote;
+    } else if (ch === ',' && !inQuote) {
+      row.push('');
+      i++;
+    } else if (ch === '\n' && !inQuote) {
+      p.push(row.map(s => s.trim().replace(/^"|"$/g, '')));
+      row = [''];
+      i = 0;
+    } else {
+      row[i] += ch;
+    }
+  }
+  if (row.length > 1 || row[0] !== '') {
+    p.push(row.map(s => s.trim().replace(/^"|"$/g, '')));
+  }
+  if (p.length < 2) return [];
+  const headers = p[0].map(h => h.replace(/^[\uFEFF\s]+|[\s]+$/g, ''));
+  return p.slice(1).map(r => {
+    let o = {};
+    headers.forEach((h, idx) => o[h] = r[idx] || '');
+    return o;
   });
 }
 
@@ -344,7 +359,7 @@ function renderRetentionCards(team){
       </div>
     `;
   }
-  return html || '<div style="color:var(--text-muted); font-size:12px;">No candidates in this pool.</div>';
+  return html || '<div style="color:var(--text-muted); font-size:12px; padding:12px;">No candidates in this pool.</div>';
 }
 
 function renderPIPCards(team){
@@ -365,7 +380,7 @@ function renderPIPCards(team){
       <div class="jrisk"><b>${guide.title}</b>${guide.text}</div>
     </div>
   `;
-  }).join('') || '<div style="color:var(--text-muted); font-size:12px;">No employees currently in PIP pool.</div>';
+  }).join('') || '<div style="color:var(--text-muted); font-size:12px; padding:12px;">No employees currently in PIP pool.</div>';
 }
 
 function buildPane(team, idx){
@@ -460,7 +475,7 @@ async function boot(){
 
   try {
     const indexRes = await fetch(BASE_CSV_URL + INDEX_SHEET_GID);
-    if (!indexRes.ok) throw new Error("Index fetch failed");
+    if (!indexRes.ok) throw new Error(`無法連線 GID 目錄頁 (HTTP ${indexRes.status})`);
     const indexCsv = await indexRes.text();
     const indexRows = parseCSV(indexCsv);
 
@@ -473,7 +488,7 @@ async function boot(){
         gid: String(r.GID).trim()
       }));
     } else {
-      throw new Error("Invalid Index schema");
+      throw new Error("GID 目錄表欄位格式不符（需為 Department 與 GID）");
     }
   } catch(e) {
     console.warn("讀取 GID 表失敗，使用備用清單啟動:", e);
@@ -490,12 +505,13 @@ async function boot(){
   for (const cfg of teamConfigs) {
     try {
       const res = await fetch(BASE_CSV_URL + cfg.gid);
-      if(!res.ok) throw new Error(`Fetch failed for ${cfg.label}`);
+      if(!res.ok) throw new Error(`HTTP ${res.status}: 分頁尚未發布為 CSV`);
       const csvText = await res.text();
       const employees = parseCSV(csvText).map(processRow);
       loadedTeams.push({ ...cfg, employees });
     } catch(err) {
-      console.error(err);
+      console.error(`載入 ${cfg.label} 失敗:`, err);
+      // 畫面提示未發布
       loadedTeams.push({ ...cfg, employees: [] });
     }
   }
