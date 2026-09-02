@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,6 +20,13 @@
   header.top .sub{color:var(--text-secondary); font-size:13px;}
   .badge{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; background:var(--gridline); color:var(--text-secondary); margin-left:8px;}
 
+  /* 語系切換器 (Language Toggle) */
+  .lang-switcher{display:inline-flex; background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:3px; gap:2px;}
+  .lang-btn{background:none; border:none; color:var(--text-muted); padding:4px 12px; font-size:12px; font-weight:600; cursor:pointer; border-radius:6px; transition:all .15s;}
+  .lang-btn.active{background:var(--text-primary); color:var(--page-plane);}
+  .lang-btn:hover:not(.active){color:var(--text-primary);}
+
+  /* 動態部門 Tab 列 */
   .tabbar{display:flex; gap:6px; border-bottom:1px solid var(--border); margin-bottom:24px; overflow-x:auto;}
   .tabbtn{appearance:none; border:none; background:none; font-family:inherit; font-size:13px; font-weight:600; color:var(--text-muted); padding:10px 16px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap;}
   .tabbtn.active{color:var(--text-primary); border-bottom-color:var(--series-1);}
@@ -63,7 +70,7 @@
 
   .side-card{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:16px;}
   .side-card h3{font-size:12.5px; margin:0 0 10px; color:var(--text-secondary); font-weight:600; text-transform:uppercase; letter-spacing:.03em;}
-  .bar-row{display:grid; grid-template-columns:56px 1fr 28px; align-items:center; gap:8px; margin-bottom:7px; font-size:12px;}
+  .bar-row{display:grid; grid-template-columns:60px 1fr 28px; align-items:center; gap:8px; margin-bottom:7px; font-size:12px;}
   .bar-track{height:10px; background:var(--gridline); border-radius:4px; overflow:hidden;}
   .bar-fill{height:100%; background:var(--series-1); border-radius:4px 0 0 4px;}
   .bar-row .n{text-align:right; color:var(--text-muted); font-variant-numeric:tabular-nums;}
@@ -87,7 +94,7 @@
   .mono{font-variant-numeric:tabular-nums; color:var(--text-secondary);}
   .flag{color:var(--critical); font-weight:700; cursor:help;}
 
-  /* 深度升級的 Playbook 卡片樣式 */
+  /* Playbook 卡片樣式 */
   .cards{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
   .pcard{background:var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:18px; display:flex; flex-direction:column; justify-content:space-between;}
   .pcard.crit{border-color:color-mix(in srgb, var(--critical) 45%, var(--border));}
@@ -98,7 +105,7 @@
   
   .action-grid{display:grid; grid-template-columns:1fr; gap:8px; background:color-mix(in srgb, var(--page-plane) 60%, var(--card-bg)); padding:10px 12px; border-radius:8px; border:1px solid var(--border); margin:8px 0;}
   .action-item{font-size:12px; line-height:1.45;}
-  .action-item b{color:var(--text-primary); display:inline-block; width:110px;}
+  .action-item b{color:var(--text-primary); display:inline-block; width:130px;}
 
   .dialogue-box{margin:6px 0; padding:8px 12px; border-radius:6px; font-size:12px; line-height:1.45; font-style:italic;}
   .dialogue-mgr{background:var(--page-plane); border-left:3px solid var(--series-1); color:var(--text-primary);}
@@ -120,10 +127,16 @@
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>Talent Review &amp; Promotion Readiness<span class="badge">April 2027 cycle</span></h1>
-      <div class="sub">9-Box placement · Scheme B potential (Lead 70% / Head 30%) · 自動讀取 GID 目錄表</div>
+      <h1 id="headerTitle">人才盤點與晉升準備儀表板<span class="badge" id="cycleBadge">2027 年 4 月週期</span></h1>
+      <div class="sub" id="headerSub">九宮格落點評估 · 方案 B 潛力權重體系 (組長/主管 70% · 負責人/HRBP 30%) · Google 試算表連動</div>
     </div>
-    <div id="syncStatus" style="font-size:12px; color:var(--text-muted);">連線中...</div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="btnZh" onclick="setLanguage('zh')">繁中</button>
+        <button class="lang-btn" id="btnEn" onclick="setLanguage('en')">EN</button>
+      </div>
+      <div id="syncStatus" style="font-size:12px; color:var(--text-muted);">連線中...</div>
+    </div>
   </header>
 
   <div class="tabbar" id="tabbar"></div>
@@ -134,8 +147,150 @@
 const BASE_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRGPWPZC10sDW7DNW_X21iuKxKNwGhmERDWdBI8RdXPBjunnRelJtf9I2PYPzSBE80EvHrgyLgyWs8C/pub?output=csv&single=true&gid=";
 const INDEX_SHEET_GID = "50466109";
 
-const perfMap = { "S": 5.0, "A": 4.0, "B": 3.0, "B-": 2.0, "C": 1.0 };
-const potMap = { "高": 5.0, "中": 3.0, "低": 1.5, "HIGH": 5.0, "MED": 3.0, "LOW": 1.5 };
+let currentLang = localStorage.getItem('talent_dashboard_lang') || 'zh';
+let loadedTeamsData = [];
+let activeKey = null;
+
+const i18n = {
+  zh: {
+    title: "人才盤點與晉升準備儀表板",
+    badge: "2027 年 4 月週期",
+    sub: "九宮格落點評估 · 方案 B 潛力權重體系 (主管 70% · HRBP 30%) · Google 試算表連動",
+    connecting: "讀取試算表 GID 目錄中...",
+    synced: "已同步",
+    depts: "個部門",
+    kpi_reviewed: "評估總人數",
+    kpi_locs: "個地區/國家",
+    kpi_cohort: "佔團隊",
+    kpi_b1: "優先晉升 (Box 1)",
+    kpi_growth: "成長儲備池 (Box 2+4)",
+    kpi_core: "深耕骨幹 (Box 5)",
+    kpi_pip: "淘汰/輔導池 (Box 9/6)",
+    sec1_title: "部門人才九宮格分佈",
+    sec1_desc: "團隊落點分佈矩陣，涵蓋潛力與績效指標及法務合規風險預警。",
+    sec2_title: "員工盤點總表",
+    sec2_desc: "績效採 Q1–Q4 加權均分 (S=5, A=4, B=3, B−=2, C=1)。潛力採主管 70% + HRBP 30% (高=5, 中=3, 低=1.5)。點擊欄位標題可排序。",
+    sec3_title: "高潛留才策略手冊 (Box 1, 2, 4)",
+    sec3_desc: "主管、HRBP 與員工三方具體行動分工，結合激勵對話與晉升防禦機制。",
+    sec4_title: "績效改善 PIP 計畫 (Box 9 / 6)",
+    sec4_desc: "2–4 週二元化量化指標、嚴肅談判話術與多國勞工法規最後手段性防禦機制，及早汰劣節省組織沉沒成本。",
+    axis_pot: "潛力 POTENTIAL →",
+    axis_perf: "績效 PERFORMANCE →",
+    legend_fast: "優先晉升",
+    legend_growth: "儲備池",
+    legend_maintain: "維持深耕",
+    legend_mobility: "輪調觀察",
+    legend_pip: "淘汰/PIP",
+    side_loc: "各地區人數分佈",
+    side_lvl: "各職級人數分佈",
+    all_boxes: "所有落點 (All Boxes)",
+    th_id: "工號",
+    th_name: "姓名",
+    th_level: "職級",
+    th_loc: "地區",
+    th_perf: "績效均分",
+    th_pot: "潛力得分",
+    th_box: "九宮格落點",
+    th_status: "2027/04 處置狀態",
+    th_target: "目標職級",
+    search_placeholder: "搜尋姓名 / 工號...",
+    empty_pool: "此部門目前無人員在此區間。",
+    action_title: "責任分工 (Action Plan)",
+    script_title: "主管與 HRBP 談判話術 (Dialogue Playbook)",
+    tag_ctx: "現況背景與核心貢獻",
+    tag_risk: "績效缺口與合規風險",
+    mgr_label: "主管 Action:",
+    hr_label: "HRBP Action:",
+    self_label: "員工本人 Action:",
+    dialogue_mgr_label: "Direct Manager 話術：",
+    dialogue_hr_label: "HRBP 控場話術：",
+    star_mgr_action: "委任跨團隊策略專案主導權，建立雙週 1:1 職涯護航機制，提前鋪設晉升 Runway。",
+    star_hr_action: "啟動外部薪酬水位審查（Comp Benchmark），規劃中長期留任激勵（Retention Equity/Grant）。",
+    star_self_action: "制定個人發展計畫（IDP），主動承接架構設計或團隊知識傳承，擴大跨域影響力。",
+    star_mgr_script: "“你在過去四季的交付是組織的標竿。我們已正式將你列入 2027 年 4 月晉升計畫，接下來我會全力為你爭取資源，你希望在哪些策略專案中發揮更大主導權？”",
+    star_hr_script: "“組織高度認可你的戰略貢獻，我們正與管理層制定具競爭力的中長期留任配套，確保你在這裡擁有最寬廣的成長舞台。”",
+    pip_mgr_action: "設定 2–4 週具體二元化（Binary）檢核標準（如交付率 100%、零失誤率），落實每週 1:1 書面進度日誌。",
+    pip_hr_action: "建立合規檔案庫（輔導紀錄與轉崗評估），把控法定預告期，必要時主導協議離職談判以節省沉沒成本。",
+    pip_self_action: "簽署改善計畫確認書，每日更新產出日誌並於每週五提交主管覆核，逾期視為未達標。",
+    pip_mgr_script: "“我們檢視了過去四季的量化數據，交付成果與組織標準有顯著落差。今天正式啟動為期 2–4 週的績效改善計畫（PIP）。這份文件列明了唯一的合格標準，我們每週會書面覆核。”",
+    pip_hr_script: "“公司依法提供合理的改善機會，但若指標未能如期達成，我們將依當地法規進入法定終止程序。若評估目前的節奏不適合，我們也可在合規前提下探討合意離職方案。”"
+  },
+  en: {
+    title: "Talent Review & Promotion Readiness Dashboard",
+    badge: "April 2027 Cycle",
+    sub: "9-Box Matrix Evaluation · Scheme B Weighted Potential (Manager 70% · HRBP 30%) · Live Sync",
+    connecting: "Connecting to GID Index sheet...",
+    synced: "Synced",
+    depts: "departments",
+    kpi_reviewed: "Headcount Reviewed",
+    kpi_locs: "locations",
+    kpi_cohort: "of cohort",
+    kpi_b1: "Fast-Track (Box 1)",
+    kpi_growth: "Growth Pool (Box 2+4)",
+    kpi_core: "Maintain & Deepen (Box 5)",
+    kpi_pip: "PIP Pool (Box 9/6)",
+    sec1_title: "Departmental 9-Box Distribution",
+    sec1_desc: "Talent matrix distribution across performance and potential dimensions with labor compliance risk flags.",
+    sec2_title: "Talent Review Table",
+    sec2_desc: "Performance = Q1–Q4 average (S=5, A=4, B=3, B−=2, C=1). Potential = Lead×0.7 + Head×0.3 (High=5, Med=3, Low=1.5). Click header to sort.",
+    sec3_title: "High-Potential Retention & Care Playbook (Box 1, 2, 4)",
+    sec3_desc: "Actionable RACI matrix across Manager, HRBP, and Employee with calibrated 1-on-1 retention scripts.",
+    sec4_title: "Underperformer PIP Plan (Box 9 / 6)",
+    sec4_desc: "2–4 week binary milestones, firm manager conversation openers, and jurisdiction-specific statutory compliance rules.",
+    axis_pot: "POTENTIAL →",
+    axis_perf: "PERFORMANCE →",
+    legend_fast: "Fast-Track",
+    legend_growth: "Growth Pool",
+    legend_maintain: "Maintain",
+    legend_mobility: "Mobility Review",
+    legend_pip: "PIP / Action",
+    side_loc: "Headcount by Location",
+    side_lvl: "Headcount by Level",
+    all_boxes: "All Boxes",
+    th_id: "ID",
+    th_name: "Name",
+    th_level: "Level",
+    th_loc: "Location",
+    th_perf: "Perf Avg",
+    th_pot: "Pot Score",
+    th_box: "9-Box",
+    th_status: "Apr 2027 Status",
+    th_target: "Target Level",
+    search_placeholder: "Search name / ID...",
+    empty_pool: "No candidates currently in this cohort.",
+    action_title: "Role-Based Action Plan",
+    script_title: "1-on-1 Dialogue Playbook",
+    tag_ctx: "Context & Contribution",
+    tag_risk: "Deficiency & Risk Context",
+    mgr_label: "Direct Manager:",
+    hr_label: "HRBP:",
+    self_label: "Employee (Self):",
+    dialogue_mgr_label: "Direct Manager Opener:",
+    dialogue_hr_label: "HRBP Closing Script:",
+    star_mgr_action: "Assign key strategic project ownership; set up bi-weekly 1:1 career sponsorship cadence to protect promotion runway.",
+    star_hr_action: "Initiate external compensation benchmarking; structure tailored retention equity/grant packages.",
+    star_self_action: "Draft an Individual Development Plan (IDP); lead knowledge transfer sessions to scale organizational leverage.",
+    star_mgr_script: "“Your delivery over the past four quarters stands out as an organizational benchmark. We have officially mapped you to the April 2027 promotion track — let's align on what high-impact runway you want next.”",
+    star_hr_script: "“Leadership strongly recognizes your strategic contribution. We are proactively reviewing retention packages to ensure your continued growth here.”",
+    pip_mgr_action: "Establish 2–4 week binary performance metrics (100% on-time delivery, zero critical errors); conduct documented weekly reviews.",
+    pip_hr_action: "Audit counseling records and transfer-feasibility assessments; manage statutory notice windows or guide mutual separation negotiation.",
+    pip_self_action: "Sign PIP acknowledgment; maintain daily output logs and submit for manager review every Friday; missed logs indicate unmet targets.",
+    pip_mgr_script: "“We have reviewed your performance metrics across the past quarters, and results fall significantly short of required standards. Today we are initiating a time-boxed 2–4 week PIP with unambiguous pass/fail criteria.”",
+    pip_hr_script: "“The company provides fair opportunity to improve; however, failure to meet targets will initiate formal statutory separation. If this pace no longer fits, we are open to discussing a mutual separation package.”"
+  }
+};
+
+const boxDefs = {
+  1: { zh: "Box 1 · 頂尖之星 (Star)", en: "Box 1 · Star", poolZh: "優先晉升 (Fast-Track)", poolEn: "Fast-Track Promotion" },
+  2: { zh: "Box 2 · 成長高潛 (High Pot)", en: "Box 2 · High Potential", poolZh: "儲備池 (6-12 個月)", poolEn: "Growth Pool (6-12mo)" },
+  3: { zh: "Box 3 · 璞玉待磨 (Rough Diamond)", en: "Box 3 · Rough Diamond", poolZh: "橫向輪調激發", poolEn: "Talent Mobility Review" },
+  4: { zh: "Box 4 · 高績效標竿 (High Perf)", en: "Box 4 · High Performer", poolZh: "儲備池 (6-12 個月)", poolEn: "Succession Pool" },
+  5: { zh: "Box 5 · 核心骨幹 (Core Player)", en: "Box 5 · Core Player", poolZh: "維持現職深耕", poolEn: "Maintain & Deepen" },
+  6: { zh: "Box 6 · 瓶頸待激發 (Dilemma)", en: "Box 6 · Dilemma", poolZh: "限期觀察/雙週輔導", poolEn: "Watch / Coach" },
+  7: { zh: "Box 7 · 資深專家 (Solid Pro)", en: "Box 7 · Solid Pro", poolZh: "專家深耕 (不轉管理)", poolEn: "Maintain & Deepen" },
+  8: { zh: "Box 8 · 穩定貢獻 (Effective)", en: "Box 8 · Effective", poolZh: "標準維持者", poolEn: "Maintain" },
+  9: { zh: "Box 9 · 風險淘汰 (Underperformer)", en: "Box 9 · Underperformer", poolZh: "啟動 2-4 週 PIP", poolEn: "Action / PIP Pool" }
+};
 
 const complianceGuidelines = {
   TW: { title: "TW — Labor Standards Act, Article 11-5 (Last Resort Doctrine)", text: "Mandatory 2–4 week objective PIP with bi-weekly check-ins. Termination must be demonstrably a last resort — a reassignment-feasibility assessment is required before any separation step." },
@@ -149,27 +304,32 @@ const complianceGuidelines = {
   LATAM: { title: "LATAM — Regional Framework", text: "Confirm the employee's specific country of employment and applicable statutory indemnities with local counsel." }
 };
 
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem('talent_dashboard_lang', lang);
+  document.getElementById('btnZh').className = `lang-btn ${lang==='zh'?'active':''}`;
+  document.getElementById('btnEn').className = `lang-btn ${lang==='en'?'active':''}`;
+  
+  const t = i18n[lang];
+  document.getElementById('headerTitle').innerHTML = `${t.title}<span class="badge" id="cycleBadge">${t.badge}</span>`;
+  document.getElementById('headerSub').innerText = t.sub;
+
+  if (loadedTeamsData.length > 0) {
+    renderAllPanes();
+  }
+}
+
 function parseCSV(text) {
   const p = [];
   let row = [''], i = 0, inQuote = false;
   text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   for (let ch of text) {
-    if (ch === '"') {
-      inQuote = !inQuote;
-    } else if (ch === ',' && !inQuote) {
-      row.push('');
-      i++;
-    } else if (ch === '\n' && !inQuote) {
-      p.push(row.map(s => s.trim().replace(/^"|"$/g, '')));
-      row = [''];
-      i = 0;
-    } else {
-      row[i] += ch;
-    }
+    if (ch === '"') inQuote = !inQuote;
+    else if (ch === ',' && !inQuote) { row.push(''); i++; }
+    else if (ch === '\n' && !inQuote) { p.push(row.map(s => s.trim().replace(/^"|"$/g, ''))); row = ['']; i = 0; }
+    else row[i] += ch;
   }
-  if (row.length > 1 || row[0] !== '') {
-    p.push(row.map(s => s.trim().replace(/^"|"$/g, '')));
-  }
+  if (row.length > 1 || row[0] !== '') p.push(row.map(s => s.trim().replace(/^"|"$/g, '')));
   if (p.length < 2) return [];
   const headers = p[0].map(h => h.replace(/^[\uFEFF\s]+|[\s]+$/g, ''));
   return p.slice(1).map(r => {
@@ -180,6 +340,9 @@ function parseCSV(text) {
 }
 
 function processRow(row) {
+  const perfMap = { "S": 5.0, "A": 4.0, "B": 3.0, "B-": 2.0, "C": 1.0 };
+  const potMap = { "高": 5.0, "中": 3.0, "低": 1.5, "HIGH": 5.0, "MED": 3.0, "LOW": 1.5 };
+
   const q1 = perfMap[String(row.Q1).trim().toUpperCase()] || parseFloat(row.Q1) || 0;
   const q2 = perfMap[String(row.Q2).trim().toUpperCase()] || parseFloat(row.Q2) || 0;
   const q3 = perfMap[String(row.Q3).trim().toUpperCase()] || parseFloat(row.Q3) || 0;
@@ -194,28 +357,20 @@ function processRow(row) {
 
   let perfTier = perf >= 4.2 ? 'High' : (perf >= 3.0 ? 'Med' : 'Low');
   let potTier = pot >= 4.0 ? 'High' : (pot >= 2.8 ? 'Med' : 'Low');
-  let box = '', boxLabel = '', status = '', target = row.Current_Level || '';
+  let boxNum = 9;
 
-  if (perfTier === 'High' && potTier === 'High') {
-    box = 'Box 1'; boxLabel = 'Box 1 (Star)'; status = 'Fast-Track — priority promotion';
-    target = target.startsWith('L4') ? 'M1 / L5 (dual-track)' : (target.startsWith('M') ? `M${parseInt(target[1]||1)+1}` : `L${parseInt(target[1]||1)+1}`);
-  } else if (perfTier === 'Med' && potTier === 'High') {
-    box = 'Box 2'; boxLabel = 'Box 2 (High Potential)'; status = 'Growth pool, 6–12mo'; target = 'Ready for Next Level';
-  } else if (perfTier === 'Low' && potTier === 'High') {
-    box = 'Box 3'; boxLabel = 'Box 3 (Rough Diamond)'; status = 'Talent mobility review'; target = 'Lateral move / TBD';
-  } else if (perfTier === 'High' && potTier === 'Med') {
-    box = 'Box 4'; boxLabel = 'Box 4 (High Performer)'; status = 'Succession pool, 6–12mo'; target = 'Ready for Next Level';
-  } else if (perfTier === 'Med' && potTier === 'Med') {
-    box = 'Box 5'; boxLabel = 'Box 5 (Core Player)'; status = 'Maintain & deepen'; target = `${target} (current)`;
-  } else if (perfTier === 'Low' && potTier === 'Med') {
-    box = 'Box 6'; boxLabel = 'Box 6 (Dilemma)'; status = 'Watch / coach'; target = 'Pending review';
-  } else if (perfTier === 'High' && potTier === 'Low') {
-    box = 'Box 7'; boxLabel = 'Box 7 (Solid Pro)'; status = 'Maintain & deepen'; target = `${target} (current)`;
-  } else if (perfTier === 'Med' && potTier === 'Low') {
-    box = 'Box 8'; boxLabel = 'Box 8 (Effective)'; status = 'Maintain'; target = `${target} (current)`;
-  } else {
-    box = 'Box 9'; boxLabel = 'Box 9 (Underperformer)'; status = 'PIP — 2–4wk statutory process'; target = 'Pending PIP outcome';
-  }
+  if (perfTier === 'High' && potTier === 'High') boxNum = 1;
+  else if (perfTier === 'Med' && potTier === 'High') boxNum = 2;
+  else if (perfTier === 'Low' && potTier === 'High') boxNum = 3;
+  else if (perfTier === 'High' && potTier === 'Med') boxNum = 4;
+  else if (perfTier === 'Med' && potTier === 'Med') boxNum = 5;
+  else if (perfTier === 'Low' && potTier === 'Med') boxNum = 6;
+  else if (perfTier === 'High' && potTier === 'Low') boxNum = 7;
+  else if (perfTier === 'Med' && potTier === 'Low') boxNum = 8;
+  else boxNum = 9;
+
+  let target = row.Current_Level || '';
+  if (boxNum === 1) target = target.startsWith('L4') ? 'M1 / L5' : (target.startsWith('M') ? `M${parseInt(target[1]||1)+1}` : `L${parseInt(target[1]||1)+1}`);
 
   return {
     id: row.Employee_ID || '',
@@ -224,20 +379,17 @@ function processRow(row) {
     loc: (row.Location || row.Region || '').toUpperCase(),
     perf: Number(perf.toFixed(2)),
     pot: Number(pot.toFixed(2)),
-    box, boxLabel, status, target,
+    boxNum,
+    box: `Box ${boxNum}`,
+    target,
     notes: row.Notes || '',
-    flagged: (box === 'Box 9' && pot >= 2.5 && pot < 2.8)
+    flagged: (boxNum === 9 && pot >= 2.5 && pot < 2.8)
   };
 }
 
-function pillClass(box){ return {"Box 1":"b1","Box 2":"b2","Box 3":"b3","Box 4":"b4","Box 5":"b5","Box 9":"b9","Box 6":"b9"}[box] || "b5"; }
-
 function computeAgg(employees){
   const counts = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0,9:0};
-  employees.forEach(e=>{ 
-    const m = e.box.match(/\d+/);
-    if(m) counts[m[0]]++; 
-  });
+  employees.forEach(e => { if(counts[e.boxNum] !== undefined) counts[e.boxNum]++; });
   const n = employees.length;
   const pct = k => n ? Math.round(counts[k]/n*100) : 0;
   const byField = (field) => {
@@ -248,236 +400,209 @@ function computeAgg(employees){
   return {counts, pct, n, byLoc: byField('loc'), byLevel: byField('level')};
 }
 
-function renderMatrix(team){
+function renderMatrix(team, t){
   const a = computeAgg(team.employees);
   const c = a.counts, p = a.pct;
   const maxLoc = Math.max(...a.byLoc.map(x=>x[1]), 1);
   const maxLvl = Math.max(...a.byLevel.map(x=>x[1]), 1);
 
-  const getTip = (num, title) => {
-    const matched = team.employees.filter(e => e.box === `Box ${num}`);
+  const getTip = (num) => {
+    const matched = team.employees.filter(e => e.boxNum === num);
     const names = matched.map(e => `${e.name} (${e.loc})`).join(', ');
-    return `${title} — ${matched.length} employees.\n${names ? names : 'No employees placed here.'}`;
+    const title = currentLang === 'zh' ? boxDefs[num].zh : boxDefs[num].en;
+    return `${title} — ${matched.length} ${t.th_name}.\n${names ? names : ''}`;
   };
 
-  const cell = (num, title, tone, pool) => `
-    <div class="cell tone-${tone}" data-tip="${getTip(num, title).replace(/"/g,'&quot;')}">
-      <div class="name">Box ${num} · ${title}</div>
-      <div><div class="count">${c[num]}</div><div class="pct">${p(num)}%</div></div>
-      <div class="pool">${pool}</div>
-    </div>`;
+  const cell = (num, tone) => {
+    const d = boxDefs[num];
+    const name = currentLang === 'zh' ? d.zh : d.en;
+    const pool = currentLang === 'zh' ? d.poolZh : d.poolEn;
+    return `
+      <div class="cell tone-${tone}" data-tip="${getTip(num).replace(/"/g,'&quot;')}">
+        <div class="name">${name}</div>
+        <div><div class="count">${c[num]}</div><div class="pct">${p(num)}%</div></div>
+        <div class="pool">${pool}</div>
+      </div>`;
+  };
 
-  const pipLocCount = new Set(team.employees.filter(e => e.box === 'Box 9' || e.box === 'Box 6').map(e => e.loc)).size;
-  const riskNote = `<b>Structural summary:</b> ${team.employees.length} employees reviewed. ${c[9]+c[6]} flagged for PIP across <b>${pipLocCount} jurisdictions</b>.`;
+  const pipLocCount = new Set(team.employees.filter(e => e.boxNum === 9 || e.boxNum === 6).map(e => e.loc)).size;
+  const riskNote = currentLang === 'zh' 
+    ? `<b>架構摘要：</b>共盤點 ${team.employees.length} 位同仁。共有 ${c[9]+c[6]} 人列入 PIP 改善觀察名單，跨越 <b>${pipLocCount} 個司法管轄區</b>。請嚴格執行書面輔導紀實以符合勞動法規。`
+    : `<b>Structural Summary:</b> ${team.employees.length} reviewed. ${c[9]+c[6]} individuals flagged for PIP across <b>${pipLocCount} jurisdictions</b>. Ensure documented counseling records meet statutory standards.`;
 
   return `
   <div class="box-grid-wrap">
     <div>
       <div class="grid-with-axes">
-        <div class="axis-label-y">POTENTIAL →</div>
+        <div class="axis-label-y">${t.axis_pot}</div>
         <div class="box-grid">
-          ${cell(3,'Rough Diamond','warn','Talent mobility review')}
-          ${cell(2,'High Potential','growth','Succession / growth pool')}
-          ${cell(1,'Star','good','Fast-track promotion')}
-          ${cell(6,'Dilemma','crit','Watch / coach')}
-          ${cell(5,'Core Player','maintain','Maintain &amp; deepen')}
-          ${cell(4,'High Performer','growth','Succession / growth pool')}
-          ${cell(9,'Underperformer','crit','Action / PIP pool')}
-          ${cell(8,'Effective','maintain','Maintain')}
-          ${cell(7,'Solid Pro','maintain','Maintain &amp; deepen')}
+          ${cell(3,'warn')}
+          ${cell(2,'growth')}
+          ${cell(1,'good')}
+          ${cell(6,'crit')}
+          ${cell(5,'maintain')}
+          ${cell(4,'growth')}
+          ${cell(9,'crit')}
+          ${cell(8,'maintain')}
+          ${cell(7,'maintain')}
         </div>
       </div>
-      <div class="grid-x-axis"><div></div><div class="x-labels"><div>Low</div><div>Medium</div><div>High</div></div></div>
-      <div style="text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; letter-spacing:.04em; margin-top:2px;">PERFORMANCE →</div>
+      <div class="grid-x-axis"><div></div><div class="x-labels"><div>${currentLang==='zh'?'低 (Low)':'Low'}</div><div>${currentLang==='zh'?'中 (Med)':'Medium'}</div><div>${currentLang==='zh'?'高 (High)':'High'}</div></div></div>
+      <div style="text-align:center; color:var(--text-muted); font-size:11px; font-weight:600; letter-spacing:.04em; margin-top:2px;">${t.axis_perf}</div>
       <div class="legend">
-        <span><span class="sw" style="background:var(--good)"></span>Fast-track</span>
-        <span><span class="sw" style="background:var(--series-3)"></span>Growth pool</span>
-        <span><span class="sw" style="background:var(--baseline)"></span>Maintain</span>
-        <span><span class="sw" style="background:var(--warning)"></span>Mobility review</span>
-        <span><span class="sw" style="background:var(--critical)"></span>PIP / action</span>
+        <span><span class="sw" style="background:var(--good)"></span>${t.legend_fast}</span>
+        <span><span class="sw" style="background:var(--series-3)"></span>${t.legend_growth}</span>
+        <span><span class="sw" style="background:var(--baseline)"></span>${t.legend_maintain}</span>
+        <span><span class="sw" style="background:var(--warning)"></span>${t.legend_mobility}</span>
+        <span><span class="sw" style="background:var(--critical)"></span>${t.legend_pip}</span>
       </div>
     </div>
     <div class="side-card">
-      <h3>Headcount by ${team.locFieldLabel}</h3>
+      <h3>${t.side_loc}</h3>
       ${a.byLoc.map(([k,v])=>`<div class="bar-row"><div>${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxLoc*100)}%"></div></div><div class="n">${v}</div></div>`).join('')}
-      <h3 style="margin-top:16px;">Headcount by level</h3>
+      <h3 style="margin-top:16px;">${t.side_lvl}</h3>
       ${a.byLevel.map(([k,v])=>`<div class="bar-row"><div>${k}</div><div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxLvl*100)}%; background:var(--series-3)"></div></div><div class="n">${v}</div></div>`).join('')}
       <div class="risk-note">${riskNote}</div>
     </div>
   </div>`;
 }
 
-function renderKPIs(team){
+function renderKPIs(team, t){
   const a = computeAgg(team.employees);
   const c = a.counts;
   const growth = c[2]+c[4], maintain = c[5]+c[7]+c[8];
   return `
   <div class="kpi-row">
-    <div class="kpi"><div class="label">Headcount reviewed</div><div class="value">${a.n}</div><div class="foot">${a.byLoc.length} locations</div></div>
-    <div class="kpi good"><div class="label">Fast-Track (Box 1)</div><div class="value">${c[1]}</div><div class="foot">${a.pct(1)}% of cohort</div></div>
-    <div class="kpi"><div class="label">Growth pool (Box 2+4)</div><div class="value">${growth}</div><div class="foot">${a.pct(2)+a.pct(4)}% of cohort</div></div>
-    <div class="kpi"><div class="label">Maintain &amp; deepen (Box 5)</div><div class="value">${maintain}</div><div class="foot">${a.pct(5)}% of cohort</div></div>
-    <div class="kpi crit"><div class="label">PIP pool (Box 9/6)</div><div class="value">${c[9]+c[6]}</div><div class="foot">${a.pct(9)+a.pct(6)}% of cohort</div></div>
+    <div class="kpi"><div class="label">${t.kpi_reviewed}</div><div class="value">${a.n}</div><div class="foot">${a.byLoc.length} ${t.kpi_locs}</div></div>
+    <div class="kpi good"><div class="label">${t.kpi_b1}</div><div class="value">${c[1]}</div><div class="foot">${a.pct(1)}% ${t.kpi_cohort}</div></div>
+    <div class="kpi"><div class="label">${t.kpi_growth}</div><div class="value">${growth}</div><div class="foot">${a.pct(2)+a.pct(4)}% ${t.kpi_cohort}</div></div>
+    <div class="kpi"><div class="label">${t.kpi_core}</div><div class="value">${maintain}</div><div class="foot">${a.pct(5)}% ${t.kpi_cohort}</div></div>
+    <div class="kpi crit"><div class="label">${t.kpi_pip}</div><div class="value">${c[9]+c[6]}</div><div class="foot">${a.pct(9)+a.pct(6)}% ${t.kpi_cohort}</div></div>
   </div>`;
 }
 
-function renderTable(team, tbodyId){
-  const tbody = document.getElementById(tbodyId);
-  function draw(rows){
-    tbody.innerHTML = rows.map(e => `
-      <tr>
-        <td class="mono">${e.id}</td>
-        <td>${e.name}${e.flagged ? ` <span class="flag" title="Potential score 2.55 reclassified from Box 6 to Box 9 per &lt;2.8 threshold.">&#9888;</span>` : ''}</td>
-        <td>${e.level}</td>
-        <td>${e.loc}</td>
-        <td class="mono">${e.perf.toFixed(2)}</td>
-        <td class="mono">${e.pot.toFixed(2)}</td>
-        <td><span class="pill ${pillClass(e.box)}">${e.boxLabel}</span></td>
-        <td>${e.status}</td>
-        <td>${e.target}</td>
-      </tr>`).join('');
-  }
-  draw(team.employees);
-  return draw;
-}
+function renderRetentionCards(team, t){
+  const ret = team.employees.filter(e => e.boxNum === 1 || e.boxNum === 2 || e.boxNum === 4);
+  const b3 = team.employees.filter(e => e.boxNum === 3);
 
-// 深度三方行動 (Manager / HRBP / Employee) 與 雙人話術產生器
-function renderRetentionCards(team){
-  const ret = team.employees.filter(e => e.box === 'Box 1' || e.box === 'Box 2' || e.box === 'Box 4');
-  const b3 = team.employees.filter(e => e.box === 'Box 3');
-
-  let html = ret.map(p => `
+  let html = ret.map(p => {
+    const bDef = boxDefs[p.boxNum];
+    const boxTag = currentLang === 'zh' ? bDef.zh : bDef.en;
+    return `
     <div class="pcard">
       <div>
         <div class="pc-head">
-          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.boxLabel} · ${p.loc} · ${p.level} ➔ Target: ${p.target}</div></div>
+          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${boxTag} · ${p.loc} · ${p.level} ➔ Target: ${p.target}</div></div>
         </div>
-        
-        <div class="section-tag">Context &amp; Contribution</div>
-        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Consistently high delivery and strategic organizational impact."}</p>
-        
-        <div class="section-tag">Role-Based Action Plan (責任分工)</div>
+        <div class="section-tag">${t.tag_ctx}</div>
+        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Consistent high-value business impact and technical excellence."}</p>
+        <div class="section-tag">${t.action_title}</div>
         <div class="action-grid">
-          <div class="action-item"><b>Direct Manager:</b> 委任跨團隊策略專案主導權，建立雙週 1:1 職涯護航機制，提前規劃晉升 Runway。</div>
-          <div class="action-item"><b>HRBP:</b> 啟動外部薪酬水位審查（Comp Benchmark），設計特別留任激勵（Retention Equity/Grant），確立晉升審批通道。</div>
-          <div class="action-item"><b>員工本人 (Self):</b> 制定個人發展計畫（IDP），主動承接架構設計或團隊帶教任務，擴大橫向組織影響力。</div>
+          <div class="action-item"><b>${t.mgr_label}</b> ${t.star_mgr_action}</div>
+          <div class="action-item"><b>${t.hr_label}</b> ${t.star_hr_action}</div>
+          <div class="action-item"><b>${t.self_label}</b> ${t.star_self_action}</div>
         </div>
-
-        <div class="section-tag">1-on-1 Dialogue Playbook (主管與 HRBP 話術)</div>
-        <div class="dialogue-box dialogue-mgr">
-          <b>Direct Manager 話術：</b> “你在過去四季的交付是組織的標竿。我們已正式將你列入 2027 年 4 月晉升計畫，接下來我會全力為你爭取資源，你希望在哪些策略專案中發揮更大主導權？”
-        </div>
-        <div class="dialogue-box dialogue-hr">
-          <b>HRBP 激勵留任閉環：</b> “組織高度認可你的戰略貢獻，我們正與管理層制定具競爭力的中長期留任配套與晉升通道，我們希望確保你在這裡擁有最寬廣的成長舞台。”
-        </div>
+        <div class="section-tag">${t.script_title}</div>
+        <div class="dialogue-box dialogue-mgr"><b>${t.dialogue_mgr_label}</b> ${t.star_mgr_script}</div>
+        <div class="dialogue-box dialogue-hr"><b>${t.dialogue_hr_label}</b> ${t.star_hr_script}</div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 
   if(b3.length > 0){
+    const b3Title = currentLang === 'zh' ? `${b3.length} 位 Box 3 · 璞玉待磨 — 橫向輪調激發潛力` : `${b3.length} Box 3 · Rough Diamonds — Mobility Review`;
+    const b3Sub = currentLang === 'zh' ? '具備高學習敏捷度，但目前崗位績效未達標（人崗錯配訊號）' : 'High agility/potential with role mismatch in current operational track';
     html += `
       <div class="pcard" style="grid-column:1 / -1; background:color-mix(in srgb, var(--warning) 10%, var(--card-bg));">
         <div class="pc-head">
-          <div><div class="pc-title">${b3.length} Box 3 · 璞玉待磨 (Rough Diamonds) — 橫向輪調激發潛力，避免誤入 PIP</div><div class="pc-sub">具備高學習敏捷度與高潛力，但目前崗位績效未達預期（人崗錯配訊號）</div></div>
+          <div><div class="pc-title">${b3Title}</div><div class="pc-sub">${b3Sub}</div></div>
         </div>
         <ul style="margin:6px 0 10px 18px; font-size:12.5px;">
-          ${b3.map(p=>`<li><b>${p.name}</b> (${p.level}, ${p.loc}) — ${p.notes || '高潛質待發掘'}</li>`).join('')}
+          ${b3.map(p=>`<li><b>${p.name}</b> (${p.level}, ${p.loc}) — ${p.notes || 'High potential candidate'}</li>`).join('')}
         </ul>
         <div class="action-grid">
-          <div class="action-item"><b>Direct Manager:</b> 停止以常規低績效施壓，檢視當前工作範疇是否限制其強項，與主管討論轉調意向。</div>
-          <div class="action-item"><b>HRBP:</b> 主導跨部門內部輪調機制（Internal Mobility），媒合至重策略分析或純攻防技術之崗位，設立 90 天轉崗檢視期。</div>
-          <div class="action-item"><b>員工本人 (Self):</b> 具體列出過往最具成就感與高能量之任務型態，開放配合跨領域專案支援。</div>
+          <div class="action-item"><b>${t.mgr_label}</b> ${currentLang==='zh'?'檢視當前工作範疇是否限制其強項，主動提出轉崗評估。':'Assess whether current operational load restricts strengths; propose rotation.'}</div>
+          <div class="action-item"><b>${t.hr_label}</b> ${currentLang==='zh'?'媒合跨部門專案或純策略/研發崗位，設立 90 天轉崗適應期。':'Facilitate internal transfer to strategic/technical track with a 90-day review checkpoint.'}</div>
         </div>
-        <div class="dialogue-box dialogue-mgr">
-          <b>Manager 話術：</b> “我們清楚看見你的學習敏捷度與潛質，但目前崗位的日常節奏並未讓你發揮最大長處。這不是能力問題，我們想認真跟你探討內部輪調的可能性。”
-        </div>
-      </div>
-    `;
+      </div>`;
   }
-  return html || '<div style="color:var(--text-muted); font-size:12px; padding:12px;">No candidates in this pool.</div>';
+  return html || `<div style="color:var(--text-muted); font-size:12px; padding:12px;">${t.empty_pool}</div>`;
 }
 
-function renderPIPCards(team){
-  const pips = team.employees.filter(e => e.box === 'Box 9' || e.box === 'Box 6');
+function renderPIPCards(team, t){
+  const pips = team.employees.filter(e => e.boxNum === 9 || e.boxNum === 6);
   return pips.map(p => {
-    const guide = complianceGuidelines[p.loc] || { title: `${p.loc} — Regional Labor Code`, text: "Ensure written KPIs, regular documented check-ins, and reasonable opportunity to improve per local regulations." };
+    const guide = complianceGuidelines[p.loc] || { title: `${p.loc} — Labor Code Framework`, text: "Ensure written KPIs, documented check-in logs, and reasonable statutory opportunity to improve." };
+    const bDef = boxDefs[p.boxNum];
+    const boxTag = currentLang === 'zh' ? bDef.zh : bDef.en;
     return `
     <div class="pcard crit">
       <div>
         <div class="pc-head">
-          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.level} · ${p.loc} · <span style="color:var(--critical); font-weight:700;">${p.boxLabel}</span></div></div>
+          <div><div class="pc-title">${p.name}</div><div class="pc-sub">${p.level} · ${p.loc} · <span style="color:var(--critical); font-weight:700;">${boxTag}</span></div></div>
         </div>
-        
-        <div class="section-tag">Deficiency &amp; Risk Context</div>
-        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Performance consistently below standard with severe process breakdown."}</p>
-        
-        <div class="section-tag">Role-Based Action Plan (淘汰與合規分工)</div>
+        <div class="section-tag">${t.tag_risk}</div>
+        <p style="margin:2px 0 8px 0; font-size:12.5px; color:var(--text-secondary);">${p.notes || "Performance consistently below target."}</p>
+        <div class="section-tag">${t.action_title}</div>
         <div class="action-grid">
-          <div class="action-item"><b>Direct Manager:</b> 設定 2-4 週內具體二元化（Binary）檢核標準（如交付率、零錯誤率），實施每週 1:1 書面進度日誌。</div>
-          <div class="action-item"><b>HRBP:</b> 建立合規檔案庫（審計輔導紀錄與轉崗評估），把控解僱合法性與法定預告期，必要時主動啟動協議離職談判以節省成本。</div>
-          <div class="action-item"><b>員工本人 (Self):</b> 簽署改善計畫確認書，每日更新產出日誌並於每週五提交覆核，逾期視為未達標。</div>
+          <div class="action-item"><b>${t.mgr_label}</b> ${t.pip_mgr_action}</div>
+          <div class="action-item"><b>${t.hr_label}</b> ${t.pip_hr_action}</div>
+          <div class="action-item"><b>${t.self_label}</b> ${t.pip_self_action}</div>
         </div>
-
-        <div class="section-tag">Manager &amp; HRBP Hard-Talk Scripts (嚴肅談判話術)</div>
-        <div class="dialogue-box dialogue-mgr">
-          <b>Direct Manager 開場白：</b> “我們檢視了過去四季的量化數據，交付成果與組織標準有顯著落差。今天正式啟動為期 2-4 週的績效改善計畫（PIP）。這份文件列明了唯一的合格標準，我們每週會書面覆核。”
-        </div>
-        <div class="dialogue-box dialogue-hr">
-          <b>HRBP 合規施壓與協議引導：</b> “公司依法提供合理的輔導與改善機會，但若指標未能如期達成，我們將依當地法規進入法定終止或轉崗評估。如果你評估目前的節奏不適合，我們也可在合規前提下探討合意協議方案。”
-        </div>
-
+        <div class="section-tag">${t.script_title}</div>
+        <div class="dialogue-box dialogue-mgr"><b>${t.dialogue_mgr_label}</b> ${t.pip_mgr_script}</div>
+        <div class="dialogue-box dialogue-hr"><b>${t.dialogue_hr_label}</b> ${t.pip_hr_script}</div>
         <div class="jrisk"><b>${guide.title}</b>${guide.text}</div>
       </div>
-    </div>
-  `;
-  }).join('') || '<div style="color:var(--text-muted); font-size:12px; padding:12px;">No employees currently in PIP pool.</div>';
+    </div>`;
+  }).join('') || `<div style="color:var(--text-muted); font-size:12px; padding:12px;">${t.empty_pool}</div>`;
 }
 
-function buildPane(team, idx){
+function buildPane(team, idx, t){
   const tbodyId = 'tbody_' + team.key;
   const boxFilterId = 'boxFilter_' + team.key;
   const searchId = 'search_' + team.key;
   return `
   <div class="teampane ${idx===0?'active':''}" id="pane_${team.key}">
-    ${renderKPIs(team)}
+    ${renderKPIs(team, t)}
     <section>
-      <h2><span class="num">1</span> Departmental 9-Box Distribution — ${team.deptLabel}</h2>
-      <p class="desc">Cohort view showing potential vs performance with risk indicators.</p>
-      ${renderMatrix(team)}
+      <h2><span class="num">1</span> ${t.sec1_title} — ${team.label}</h2>
+      <p class="desc">${t.sec1_desc}</p>
+      ${renderMatrix(team, t)}
     </section>
     <section>
-      <h2><span class="num">2</span> Talent Review Table</h2>
-      <p class="desc">Perf = average of Q1–Q4 (S=5, A=4, B=3, B−=2, C=1). Pot = Lead×0.7 + Head×0.3 (High=5, Med=3, Low=1.5). Click a column header to sort.</p>
+      <h2><span class="num">2</span> ${t.sec2_title}</h2>
+      <p class="desc">${t.sec2_desc}</p>
       <div class="table-tools">
         <select id="${boxFilterId}">
-          <option value="">All boxes</option>
-          <option value="Box 1">Box 1 — Star</option>
-          <option value="Box 2">Box 2 — High Potential</option>
-          <option value="Box 3">Box 3 — Rough Diamond</option>
-          <option value="Box 4">Box 4 — High Performer</option>
-          <option value="Box 5">Box 5 — Core Player</option>
-          <option value="Box 6">Box 6 — Dilemma</option>
-          <option value="Box 9">Box 9 — Underperformer</option>
+          <option value="">${t.all_boxes}</option>
+          <option value="1">Box 1</option>
+          <option value="2">Box 2</option>
+          <option value="3">Box 3</option>
+          <option value="4">Box 4</option>
+          <option value="5">Box 5</option>
+          <option value="6">Box 6</option>
+          <option value="9">Box 9</option>
         </select>
-        <input id="${searchId}" type="text" placeholder="Search name / ID…">
+        <input id="${searchId}" type="text" placeholder="${t.search_placeholder}">
       </div>
       <table id="table_${team.key}">
         <thead><tr>
-          <th data-k="id">ID</th><th data-k="name">Name</th><th data-k="level">Level</th><th data-k="loc">${team.locFieldLabel}</th>
-          <th data-k="perf">Perf</th><th data-k="pot">Pot</th><th data-k="box">Box</th><th data-k="status">Apr 2027 status</th><th data-k="target">Target level</th>
+          <th data-k="id">${t.th_id}</th><th data-k="name">${t.th_name}</th><th data-k="level">${t.th_level}</th><th data-k="loc">${t.th_loc}</th>
+          <th data-k="perf">${t.th_perf}</th><th data-k="pot">${t.th_pot}</th><th data-k="box">${t.th_box}</th><th data-k="status">${t.th_status}</th><th data-k="target">${t.th_target}</th>
         </tr></thead>
         <tbody id="${tbodyId}"></tbody>
       </table>
     </section>
     <section>
-      <h2><span class="num">3</span> High-Potential Retention &amp; Care Playbook — Box 1, 2, 4</h2>
-      <p class="desc">主管/HRBP/員工三方具體行動對照表，結合激勵留才對話話術與晉升防禦機制。</p>
-      <div class="cards">${renderRetentionCards(team)}</div>
+      <h2><span class="num">3</span> ${t.sec3_title}</h2>
+      <p class="desc">${t.sec3_desc}</p>
+      <div class="cards">${renderRetentionCards(team, t)}</div>
     </section>
     <section>
-      <h2><span class="num">4</span> Underperformer PIP Plan — Box 9 / 6</h2>
-      <p class="desc">2–4 週二元化量化指標、嚴肅談判話術與多國勞工法規最後手段性防禦機制，及早汰劣節省沉沒成本。</p>
-      <div class="cards">${renderPIPCards(team)}</div>
+      <h2><span class="num">4</span> ${t.sec4_title}</h2>
+      <p class="desc">${t.sec4_desc}</p>
+      <div class="cards">${renderPIPCards(team, t)}</div>
     </section>
   </div>`;
 }
@@ -487,12 +612,33 @@ function wireTable(team){
   const boxFilterId = 'boxFilter_' + team.key;
   const searchId = 'search_' + team.key;
   let sortKey = null, sortDir = 1;
-  const draw = renderTable(team, tbodyId);
+  const tbody = document.getElementById(tbodyId);
+
+  function draw(rows){
+    tbody.innerHTML = rows.map(e => {
+      const bDef = boxDefs[e.boxNum];
+      const pillLabel = currentLang === 'zh' ? bDef.zh : bDef.en;
+      const statusLabel = currentLang === 'zh' ? bDef.poolZh : bDef.poolEn;
+      const pillCls = (e.boxNum===1)?'b1':((e.boxNum===2||e.boxNum===4)?'b2':((e.boxNum===3)?'b3':((e.boxNum===9||e.boxNum===6)?'b9':'b5')));
+      return `
+        <tr>
+          <td class="mono">${e.id}</td>
+          <td>${e.name}${e.flagged ? ` <span class="flag" title="Reclassified to Box 9 per &lt;2.8 threshold.">&#9888;</span>` : ''}</td>
+          <td>${e.level}</td>
+          <td>${e.loc}</td>
+          <td class="mono">${e.perf.toFixed(2)}</td>
+          <td class="mono">${e.pot.toFixed(2)}</td>
+          <td><span class="pill ${pillCls}">${pillLabel}</span></td>
+          <td>${statusLabel}</td>
+          <td>${e.target}</td>
+        </tr>`;
+    }).join('');
+  }
 
   function apply(){
     const boxVal = document.getElementById(boxFilterId).value;
     const q = document.getElementById(searchId).value.trim().toLowerCase();
-    let rows = team.employees.filter(e => (!boxVal || e.box===boxVal) && (!q || e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)));
+    let rows = team.employees.filter(e => (!boxVal || String(e.boxNum)===boxVal) && (!q || e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)));
     if(sortKey){
       rows = rows.slice().sort((a,b)=>{
         const av=a[sortKey], bv=b[sortKey];
@@ -515,70 +661,79 @@ function wireTable(team){
   apply();
 }
 
-async function boot(){
+function renderAllPanes() {
+  const t = i18n[currentLang];
   const tabbar = document.getElementById('tabbar');
   const panes = document.getElementById('panes');
-  tabbar.innerHTML = '<span style="font-size:13px; color:var(--text-muted); padding:10px;">讀取試算表 GID 目錄中...</span>';
+
+  if (!activeKey && loadedTeamsData.length > 0) {
+    activeKey = loadedTeamsData[0].key;
+  }
+
+  tabbar.innerHTML = loadedTeamsData.map(d => `<button class="tabbtn ${d.key===activeKey?'active':''}" data-key="${d.key}">${d.label}</button>`).join('');
+  panes.innerHTML = loadedTeamsData.map((d, i) => buildPane(d, d.key===activeKey?0:1, t)).join('');
+
+  loadedTeamsData.forEach(d => wireTable(d));
+
+  tabbar.querySelectorAll('.tabbtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabbar.querySelectorAll('.tabbtn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeKey = btn.dataset.key;
+      document.querySelectorAll('.teampane').forEach(p => p.classList.remove('active'));
+      document.getElementById('pane_' + activeKey).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.teampane').forEach(p => p.classList.remove('active'));
+  const activePane = document.getElementById('pane_' + activeKey);
+  if (activePane) activePane.classList.add('active');
+}
+
+async function boot(){
+  setLanguage(currentLang);
+  const t = i18n[currentLang];
+  document.getElementById('syncStatus').innerText = t.connecting;
 
   let teamConfigs = [];
-
   try {
     const indexRes = await fetch(BASE_CSV_URL + INDEX_SHEET_GID);
-    if (!indexRes.ok) throw new Error(`無法連線 GID 目錄頁 (HTTP ${indexRes.status})`);
+    if (!indexRes.ok) throw new Error(`HTTP ${indexRes.status}`);
     const indexCsv = await indexRes.text();
     const indexRows = parseCSV(indexCsv);
-
     if (indexRows.length > 0 && indexRows[0].Department && indexRows[0].GID) {
       teamConfigs = indexRows.map((r, i) => ({
         key: 'TEAM_' + i,
         label: r.Department,
-        deptLabel: r.Department,
-        locFieldLabel: r.Department.includes("運營") ? 'Region' : 'Location',
         gid: String(r.GID).trim()
       }));
-    } else {
-      throw new Error("GID 目錄表欄位格式不符（需為 Department 與 GID）");
-    }
+    } else throw new Error("Schema error");
   } catch(e) {
-    console.warn("讀取 GID 表失敗，使用備用清單啟動:", e);
     teamConfigs = [
-      { key: 'FT', label: '法幣部門 (Fiat)', deptLabel: 'Fiat', locFieldLabel: 'Location', gid: '1952213325' },
-      { key: 'SEC', label: '安全部門 (Security)', deptLabel: 'Security', locFieldLabel: 'Location', gid: '1349594726' },
-      { key: 'BD', label: '業務與運營 (Sales & Ops)', deptLabel: 'Sales & Operations', locFieldLabel: 'Region', gid: '1804429324' },
-      { key: 'FIN', label: '財務', deptLabel: 'Finance', locFieldLabel: 'Location', gid: '2080233148' },
-      { key: 'LEGAL', label: '法務', deptLabel: 'Compliance', locFieldLabel: 'Location', gid: '1224573719' }
+      { key: 'FT', label: '法幣部門 (Fiat)', gid: '1952213325' },
+      { key: 'SEC', label: '安全部門 (Security)', gid: '1349594726' },
+      { key: 'BD', label: '業務與運營 (Sales & Ops)', gid: '1804429324' },
+      { key: 'FIN', label: '財務', gid: '2080233148' },
+      { key: 'LEGAL', label: '法務', gid: '1224573719' }
     ];
   }
 
-  const loadedTeams = [];
+  loadedTeamsData = [];
   for (const cfg of teamConfigs) {
     try {
       const res = await fetch(BASE_CSV_URL + cfg.gid);
-      if(!res.ok) throw new Error(`HTTP ${res.status}: 分頁尚未發布為 CSV`);
+      if(!res.ok) throw new Error(`Fetch failed: ${cfg.label}`);
       const csvText = await res.text();
       const employees = parseCSV(csvText).map(processRow);
-      loadedTeams.push({ ...cfg, employees });
+      loadedTeamsData.push({ ...cfg, employees });
     } catch(err) {
-      console.error(`載入 ${cfg.label} 失敗:`, err);
-      loadedTeams.push({ ...cfg, employees: [] });
+      console.error(err);
+      loadedTeamsData.push({ ...cfg, employees: [] });
     }
   }
 
-  document.getElementById('syncStatus').innerText = `已同步 ${loadedTeams.length} 個部門 (${new Date().toLocaleTimeString()})`;
-
-  tabbar.innerHTML = loadedTeams.map((t,i)=>`<button class="tabbtn ${i===0?'active':''}" data-key="${t.key}">${t.label}</button>`).join('');
-  panes.innerHTML = loadedTeams.map((t,i)=>buildPane(t,i)).join('');
-
-  loadedTeams.forEach(t => wireTable(t));
-
-  tabbar.querySelectorAll('.tabbtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      tabbar.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.teampane').forEach(p=>p.classList.remove('active'));
-      document.getElementById('pane_'+btn.dataset.key).classList.add('active');
-    });
-  });
+  document.getElementById('syncStatus').innerText = `${t.synced} ${loadedTeamsData.length} ${t.depts} (${new Date().toLocaleTimeString()})`;
+  renderAllPanes();
 }
 
 window.onload = boot;
